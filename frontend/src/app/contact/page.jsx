@@ -47,14 +47,14 @@
       </div>
     </div>
     
-    <div className="flex flex-wrap justify-between max-w-4xl w-full mt-10">
-      <div className="flex items-center gap-20 bg-white shadow-md p-4 rounded-lg w-full md:w-1/3 gap-4">
+    <div className="flex flex-wrap justify-between max-w-4xl w-full mt-10 gap-0.5">
+      <div className="flex items-center gap-20 bg-white shadow-md p-4 rounded-lg w-full md:w-1/3  ">
         <span className="text-lg font-semibold">📞 (+976) 765 685</span>
       </div>
-      <div className="flex items-center gap-20 bg-white shadow-md p-4 rounded-lg w-full  md:w-1/3">
+      <div className="flex items-center gap-20 bg-white shadow-md p-4 rounded-lg w-full md:w-1/3  ">
         <span className="text-lg font-semibold">📧 mail@influenca.id</span>
       </div>
-      <div className="flex items-center gap-20  bg-white shadow-md p-4 rounded-lg w-full  md:w-1/3">
+      <div className="flex items-center gap-20  bg-white shadow-md p-4 rounded-lg w-full md:w-1/3">
         <span className="text-lg font-semibold">📍 London Eye, London</span>
       </div>
     </div>
