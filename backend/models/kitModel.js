@@ -1,4 +1,4 @@
-const { model, Schema,  } = require('../connection');
+const { model, Schema } = require('../connection');
 
 const mySchema = new Schema({
     title : String,
@@ -7,8 +7,7 @@ const mySchema = new Schema({
     price : { type : Number, require : true},
     description: {type: String, default: 'unknown'},
     image : {type : String },
-
     createdAt : { type : Date, default: Date.now }
 });
 
-module.exports = kitmodel('kit', mySchema); 
+module.exports = model('kit', mySchema); 
