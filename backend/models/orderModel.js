@@ -1,6 +1,5 @@
 const { model, Schema } = require('../connection');
 
-
 const orderSchema = new Schema({
   customerName: { type: String, required: true },
   email: { type: String, required: true },
