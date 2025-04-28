@@ -8,9 +8,9 @@ const Navbar = () => {
           <a
             className="flex-none font-semibold text-xl text-black focus:outline-hidden focus:opacity-80 dark:text-white"
             href="#"
-            aria-label="Brand"
+            aria-label="Nest & Needle"
           >
-            Brand
+          Nest & Needle
           </a>
 
           <button
