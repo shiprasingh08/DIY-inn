@@ -1,84 +1,58 @@
-import React from "react";
 
+import Link from 'next/link'
+import React from 'react'
 
-const Page = () => {
+const Signup = () => {
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-bl">
-      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden flex">
-        {/* Left Side (Image) */}
-        <div className="w-1/2 bg-pink-300 relative h-full">
+    <>
+          <div div className="h-[100vh] flex space-evenly items-center w-full bg-cover bg-center"
+        style={{ backgroundImage: `url('https://i.pinimg.com/736x/86/de/ae/86deaee680e942b739f293c0718cad9f.jpg')` }}  >
+      <div className="flex max-w-2xl w-full  gap-4 custom-shadow justify-center items-center mx-auto">
+        <div className="w-1/2 bg-[#fceee6] p-8 flex flex-col items-center rounded-xl justify-center text-center">
+          <h1 className="text-3xl font-semibold mb-4">Welcome to DIY.</h1>
           <img
-            src="https://i.pinimg.com/474x/1d/4f/3a/1d4f3a19d39ab2a2d14d8d2e26e38ea1.jpg"
-            alt="Signup Illustration"
-            className="w-full h-full object-cover"
+            src="https://i.pinimg.com/236x/8b/b5/f4/8bb5f492daee404e4ee2e9fc8524702a.jpg"
+            alt="Image"
+            className="max-w-full mb-6"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-50 to-transparent" />
-        </div>
-
-        {/* Right Side (Form) */}
-        <div className="w-1/2 bg-pink-300 p-8 text-white flex flex-col justify-center">
-          <h2 className="text-xl font-semibold">
-            Hello! <br /> We are glad to see you :)
-          </h2>
-
-          {/* Google Signup Button */}
-          <button className="mt-4 w-full bg-white text-green-800 py-2 rounded-lg flex items-center justify-center gap-2 font-medium">
-            <img
-              src="https://www.svgrepo.com/show/303108/google-icon-logo.svg"
-              alt="Google Logo"
-              className="w-5 h-5"
-            />
-            Sign up with Google
+          <p className="text-gray-600 mb-6 flex justify-center items-center ">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Recusandae, officia?
+          </p>
+          <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+            Get Started
           </button>
-
-          <div className="text-center my-4 text-sm">Or</div>
-
-          <form>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Name"
-                className="p-2 rounded-lg w-full text-gray-800"
-              />
-              <input
-                type="email"
-                placeholder="Email Address"
-                className="p-2 rounded-lg w-full text-gray-800"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="p-2 rounded-lg w-full text-gray-800"
-              />
-              <input
-                type="password"
-                placeholder="Repeat Password"
-                className="p-2 rounded-lg w-full text-gray-800"
-              />
-            </div>
-
-            <div className="mt-4 flex items-center">
-              <input type="checkbox" className="mr-2" />
-              <label className="text-sm">
-                I agree{" "}
-                <a href="#" className="underline">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="#" className="underline">
-                  Privacy Policy
-                </a>
-              </label>
-            </div>
-
-            <button className="mt-4 w-full bg-green-400 py-2 rounded-lg text-green-900 font-semibold">
-              Sign Up
-            </button>
-          </form>
+        </div>
+        <div className="w-1/2 bg-white p-8 flex flex-col justify-center rounded-xl ">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReifEhDM2UVScP0KDPs5y9r2zI6M2inQm0Og&s"
+            alt="Hanging Plants"
+            className="max-w-full mb-6"
+          />
+          <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
+          <input
+            type="email"
+            placeholder="Email"
+            className="border border-gray-300 rounded p-2 mb-4 w-full"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="border border-gray-300 rounded p-2 mb-4 w-full"
+          />
+          <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full">
+            Next
+          </button>
+          <p className="text-sm text-center mt-4">
+            Already have an account?{" "}
+            <a href="#" className="text-green-500">
+              Sign in
+            </a>
+          </p>
         </div>
       </div>
-    </div>
-  );
-};
+      </div>
+    </>
+  )
+}
 
-export default Page;
+export default Signup;
