@@ -28,6 +28,8 @@ router.get('/getbyid/:id', (req, res) => {
         });
 });
 
+
+
 router.get('/getall', (req, res) => {
 
     Model.find()

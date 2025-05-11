@@ -10,27 +10,31 @@ import StarRatings from 'react-star-ratings';
 const ISSERVER = typeof window === "undefined";
 
 function ViewKitPage() {
-  const { addToWishlist, checkItemInWishlist } = useWishListContext();
+  const { addToWishlist, isInWishlist: checkItemInWishlist } = useWishListContext();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState(null);
   const [rating, setRating] = useState(0);
   const [reviewList, setReviewList] = useState([]);
-  const { addToCart, checkItemInCart } = useCartContext();
+  const { addItemToCart: addToCart, isInCart: checkItemInCart } = useCartContext();
 
   const commentRef = useRef();
   const { id } = useParams();
 
-  const fetchProductId = useCallback(async () => {
+  const fetchProductId = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/getbyid/${id}`);
-      if (!res.ok) throw new Error('Failed to fetch product');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kit/getbyid/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to fetch product');
+      }
       const data = await res.json();
+      if (!data) throw new Error('No product found');
       setProduct(data);
     } catch (error) {
       console.error('Error fetching product:', error);
-      toast.error('Failed to load product details');
+      toast.error(error.message || 'Failed to load product details');
     }
-  }, [id]);
+  };
 
   const fetchReview = useCallback(async () => {
     try {
@@ -47,7 +51,7 @@ function ViewKitPage() {
   useEffect(() => {
     fetchProductId();
     fetchReview();
-  }, [fetchProductId, fetchReview]);
+  }, [id, fetchReview]);
 
   const totalRatings = reviewList.length;
 
@@ -107,22 +111,39 @@ function ViewKitPage() {
         <>
           <div className="max-w-6xl w-full flex flex-col md:flex-row items-center md:items-start space-y-8 md:space-y-0 md:space-x-12">
             <div className="w-full md:w-1/2 max-h-[70vh] flex justify-center">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-full object-contain rounded-lg shadow-md"
-              />
+              {product.videourl ? (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  controls
+                  src={product.videourl}
+                  alt={product.title}
+                  className="w-full h-full object-contain rounded-lg shadow-md"
+                />
+              ) : product.image ? (
+                <img 
+                  src={product.image} 
+                  alt={product.title}
+                  className="w-full h-full object-contain rounded-lg shadow-md" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+                  <p className="text-gray-500">No media available</p>
+                </div>
+              )}
             </div>
 
             <div className="w-full md:w-1/2">
-              <h1 className="text-4xl font-bold text-gray-800 mb-4">{product.title}</h1>
-              <p className="text-lg text-gray-600 mb-6">{product.description}</p>
-
-              <div className="mb-6">
+              <h1 className="text-4xl font-bold text-gray-800">{product.title}</h1>
+              <h2 className='text-md font-semibold text-gray-700 mb-4'>{product.brand}</h2>
                 <span className="text-2xl font-semibold text-red-900">₹{product.price}</span>
+
+              <div className="my-6">
+              <p className="text-lg text-gray-600 mb-6">{product.description}</p>
               </div>
 
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Product Features:</h2>
                 <ul className="list-disc list-inside text-gray-600 space-y-2">
                   {product.features?.map((feature, index) => (
@@ -137,7 +158,7 @@ function ViewKitPage() {
                       </>
                     )}
                 </ul>
-              </div>
+              </div> */}
 
               <div className="mb-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Specifications:</h2>
@@ -219,7 +240,7 @@ function ViewKitPage() {
               </div>
 
               <button
-                disabled={checkItemInCart(product)}
+                disabled={checkItemInCart}
                 onClick={() => {
                   addToCart(product);
                 }}

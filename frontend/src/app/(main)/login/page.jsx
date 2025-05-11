@@ -18,7 +18,7 @@ const Signup = () => {
           <p className="text-gray-600 mb-6 flex justify-center items-center ">
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Recusandae, officia?
           </p>
-          <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+          <button className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded">
             Get Started
           </button>
         </div>
@@ -39,12 +39,12 @@ const Signup = () => {
             placeholder="Password"
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
-          <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full">
+          <button className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded w-full">
             Next
           </button>
           <p className="text-sm text-center mt-4">
             Already have an account?{" "}
-            <a href="#" className="text-green-500">
+            <a href="#" className="text-pink-500">
               Sign in
             </a>
           </p>

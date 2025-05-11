@@ -2,111 +2,127 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
+import axios from 'axios'
+import { useFormik } from 'formik'
 
 export default function AddKits() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '',
-    brand: '',
-    category: '',
-    price: '',
-    description: '',
-    image: ''
+
+  const addkitsForm = useFormik({
+    initialValues: {
+      name: '',
+      brand: '',
+      category: '',
+      price: '',
+      description: '',
+      image: '',
+      videourl: '',
+      stock: 0
+    },
+    onSubmit: (values, {resetForm}) => {
+      axios.post('http://localhost:5000/kit/add', values)
+      .then((result) => {
+        console.log(result.data);
+        toast.success('Kit added successfully!')
+        resetForm();
+      }).catch((err) => {
+        console.log(err);
+        toast.error('Failed to add kit. Please try again.')
+      });
+    }
   })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }))
+  const upload = (e) => {
+    const file = e.target.files[0];
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', 'diyInn')
+    fd.append('colud_name', 'drqxuctyt')
+
+    axios.post('https://api.cloudinary.com/v1_1/drqxuctyt/image/upload', fd)
+        .then((result) => {
+            toast.success('file upload successfully');
+            console.log(result.data);
+            // setPreview(result.data.url);
+            addkitsForm.setFieldValue('image', result.data.url);
+        }).catch((err) => {
+            console.log(err);
+            toast.error('failed to upload file');
+        });
   }
+  
+  const uploadvideo = (e) => {
+    const file = e.target.files[0];
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', 'diyInn')
+    fd.append('colud_name', 'drqxuctyt')
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    
-    try {
-      const response = await fetch('http://localhost:5000/kit/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price)
-        })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('Kit added successfully!')
-        router.push('/admin/profile')
-      } else {
-        toast.error(data.message || 'Failed to add kit')
-      }
-    } catch (error) {
-      console.error('Error adding kit:', error)
-      toast.error('Failed to add kit. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    axios.post('https://api.cloudinary.com/v1_1/drqxuctyt/image/upload', fd)
+        .then((result) => {
+            toast.success('file upload successfully');
+            console.log(result.data);
+            // setPreview(result.data.url);
+            addkitsForm.setFieldValue('videourl', result.data.url);
+        }).catch((err) => {
+            console.log(err);
+            toast.error('failed to upload file');
+        });
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-pink-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white shadow-xl rounded-lg p-6 space-y-6">
+        <div className="bg-white shadow-xl rounded-lg p-6 space-y-6 border-2 border-pink-300">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Add New DIY Kit</h1>
+            <h1 className="text-3xl font-bold text-black">Add New DIY Kit</h1>
             <p className="mt-2 text-sm text-gray-600">Enter the details of the new DIY kit below</p>
+            <div className="w-24 h-1 bg-pink-400 mx-auto mt-3"></div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={addkitsForm.handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor="title">
-                Kit Title *
+              <label className="block text-sm font-medium text-black" htmlFor="name">
+                Kit Name *
               </label>
               <input
                 type="text"
-                name="title"
-                id="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                name="name"
+                id="name"
+                value={addkitsForm.values.name}
+                onChange={addkitsForm.handleChange}
+                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                 required
-                placeholder="Enter kit title"
+                placeholder="Enter kit name"
               />
             </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700" htmlFor="brand">
+                <label className="block text-sm font-medium text-black" htmlFor="brand">
                   Brand
                 </label>
                 <input
                   type="text"
                   name="brand"
                   id="brand"
-                  value={formData.brand}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={addkitsForm.values.brand}
+                  onChange={addkitsForm.handleChange}
+                  className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                   placeholder="Enter brand name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700" htmlFor="category">
+                <label className="block text-sm font-medium text-black" htmlFor="category">
                   Category *
                 </label>
                 <select
                   name="category"
                   id="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={addkitsForm.values.category}
+                  onChange={addkitsForm.handleChange}
+                  className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                   required
                 >
                   <option value="">Select a category</option>
@@ -121,20 +137,20 @@ export default function AddKits() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor="price">
+              <label className="block text-sm font-medium text-black" htmlFor="price">
                 Price 
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+                  <span className="text-pink-500 sm:text-sm">$</span>
                 </div>
                 <input
                   type="number"
                   name="price"
                   id="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  className="block w-full pl-7 pr-3 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={addkitsForm.values.price}
+                  onChange={addkitsForm.handleChange}
+                  className="block w-full pl-7 pr-3 py-2 rounded-md border border-pink-200 focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                   placeholder="0.00"
                   min="0"
                   step="0.01"
@@ -144,51 +160,91 @@ export default function AddKits() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor="description">
+              <label className="block text-sm font-medium text-black" htmlFor="description">
                 Description 
               </label>
               <textarea
                 name="description"
                 id="description"
-                value={formData.description}
-                onChange={handleChange}
+                value={addkitsForm.values.description}
+                onChange={addkitsForm.handleChange}
                 rows="4"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                 placeholder="Enter detailed description of the kit"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor="image">
+              <label className="block text-sm font-medium text-black" htmlFor="upload">
                 Image URL 
+                <span className="ml-2 inline-block px-2 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-md cursor-pointer hover:bg-pink-200">
+                  Browse
+                  <input type="file" onChange={upload} id='upload' hidden/>
+                </span>
               </label>
               <input
-                type="file"
+                type="text"
                 name="image"
                 id="image"
-                value={formData.image}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={addkitsForm.values.image}
+                onChange={addkitsForm.handleChange}
+                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                 placeholder="Enter image URL"
                 required
               />
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-black" htmlFor="uploadvideo">
+                Video URL 
+                <span className="ml-2 inline-block px-2 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-md cursor-pointer hover:bg-pink-200">
+                  Browse
+                  <input type="file" onChange={uploadvideo} id='uploadvideo' hidden/>
+                </span>
+              </label>
+              <input
+                type="text"
+                name="videourl"
+                id="videourl"
+                value={addkitsForm.values.videourl}
+                onChange={addkitsForm.handleChange}
+                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                placeholder="Enter video URL"
+                required
+              />
+            </div>
 
-            <div className="flex justify-end space-x-3">
+            <div>
+              <label className="block text-sm font-medium text-black" htmlFor="stock">
+                Stock Quantity *
+              </label>
+              <input
+                type="number"
+                name="stock"
+                id="stock"
+                value={addkitsForm.values.stock}
+                onChange={addkitsForm.handleChange}
+                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                placeholder="Enter stock quantity"
+                min="0"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-pink-100">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-pink-300 rounded-md text-sm font-medium text-black hover:bg-pink-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={loading}
-                className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
               >
-                {loading ? 'Adding...' : 'Add Kit'}
+                Add Kit
               </button>
             </div>
           </form>

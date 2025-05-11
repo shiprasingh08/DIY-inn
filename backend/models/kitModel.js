@@ -7,6 +7,7 @@ const mySchema = new Schema({
     price : { type : Number, require : true},
     description: {type: String, default: 'unknown'},
     image : {type : String },
+    videourl : {type : String },
     createdAt : { type : Date, default: Date.now }
 });
 

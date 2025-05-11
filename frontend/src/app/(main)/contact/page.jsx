@@ -79,44 +79,7 @@ const ContactUs = () => {
         ></iframe>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-pink-200 text-black py-10 mt-20 w-full">
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Contact Us</h3>
-            <p>📞 (+976) 765 685</p>
-            <p>📧 mail@influenca.id</p>
-            <p>📍 London Eye, London</p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="hover:underline">Home</a></li>
-              <li><a href="#" className="hover:underline">About</a></li>
-              <li><a href="#" className="hover:underline">Services</a></li>
-              <li><a href="#" className="hover:underline">Contact</a></li>
-            </ul>
-          </div>
-
-          {/* Social Media */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Follow Us</h3>
-            <div className="flex space-x-4 text-2xl">
-              <a href="#" className="hover:text-blue-500">🌐</a>
-              <a href="#" className="hover:text-blue-400">🐦</a>
-              <a href="#" className="hover:text-pink-500">📸</a>
-              <a href="#" className="hover:text-blue-700">📘</a>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-10 text-center text-sm text-gray-400">
-          &copy; {new Date().getFullYear()} Influenca. All rights reserved.
-        </div>
-      </footer>
+      
     </div>
   );
 };
