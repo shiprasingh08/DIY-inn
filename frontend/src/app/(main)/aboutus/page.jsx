@@ -1,15 +1,63 @@
 'use client';
 import { useState, useEffect } from "react";
 import { ArrowRight, Heart, Users, Wrench, Instagram, Twitter, Facebook } from "lucide-react";
+import { toast } from 'react-hot-toast';
 
-export default function AboutUsPage() {
-  const [isVisible, setIsVisible] = useState({
+export default function AboutUsPage() {  const [isVisible, setIsVisible] = useState({
     hero: false,
     mission: false,
     team: false,
     values: false,
     contact: false
   });
+  
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = () => {
+    if (!email) {
+      toast.error('Please enter your email address', {
+        style: {
+          border: '1px solid #ff4b4b',
+          padding: '16px',
+          color: '#ff4b4b',
+        },
+        iconTheme: {
+          primary: '#ff4b4b',
+          secondary: '#FFFAEE',
+        },
+      });
+      return;
+    }
+
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('Please enter a valid email address', {
+        style: {
+          border: '1px solid #ff4b4b',
+          padding: '16px',
+          color: '#ff4b4b',
+        },
+        iconTheme: {
+          primary: '#ff4b4b',
+          secondary: '#FFFAEE',
+        },
+      });
+      return;
+    }
+
+    // Here you would typically make an API call to subscribe the user
+    toast.success('Successfully subscribed to our newsletter!', {
+      style: {
+        border: '1px solid #10B981',
+        padding: '16px',
+        color: '#10B981',
+      },
+      iconTheme: {
+        primary: '#10B981',
+        secondary: '#FFFAEE',
+      },
+    });
+    setEmail('');
+  };
 
   useEffect(() => {
     // Simulate staggered animations on initial load
@@ -184,13 +232,18 @@ export default function AboutUsPage() {
             Subscribe to our newsletter for weekly DIY inspiration, exclusive tutorials, and updates on upcoming workshops and events.
           </p>
           
-          <div className="flex flex-col md:flex-row justify-center gap-4 max-w-md mx-auto">
-            <input 
+          <div className="flex flex-col md:flex-row justify-center gap-4 max-w-md mx-auto">            <input 
               type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address" 
-              className="px-4 py-3 rounded-lg focus:outline-none text-black flex-grow"
+              className="px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 text-black flex-grow"
+              onKeyPress={(e) => e.key === 'Enter' && handleSubscribe()}
             />
-            <button className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+            <button 
+              onClick={handleSubscribe}
+              className="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white px-6 py-3 rounded-lg transition-colors font-medium transform hover:scale-105 active:scale-100"
+            >
               Subscribe
             </button>
           </div>

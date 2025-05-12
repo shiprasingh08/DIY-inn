@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { PlusCircle, Pencil, Trash2, X } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const ManageKits = () => {
   const [kits, setKits] = useState([]);
@@ -20,9 +22,9 @@ const ManageKits = () => {
 
   const fetchKits = async () => {
     try {
-      const response = await fetch("/api/kits");
-      const data = await response.json();
-      setKits(data);
+      const response = await axios.get("http://localhost:5000/kit/getall");
+      console.log(response.data);
+      setKits(response.data);
     } catch (error) {
       console.error("Error fetching kits:", error);
     }
@@ -59,19 +61,15 @@ const ManageKits = () => {
   };
 
   const handleDelete = async (kitId) => {
-    if (window.confirm("Are you sure you want to delete this kit?")) {
-      try {
-        const response = await fetch(`/api/kits/${kitId}`, {
-          method: "DELETE",
-        });
-
-        if (response.ok) {
-          fetchKits();
-        }
-      } catch (error) {
-        console.error("Error deleting kit:", error);
-      }
+    try{
+      await axios.delete(`http://localhost:5000/kit/delete/${kitId}`)
+      toast.success("Kit deleted successfully");
+      fetchKits();
+    }catch(error){
+      console.error("Error deleting kit:", error);
+      toast.error("Failed to delete kit");
     }
+    
   };
 
   const handleEdit = (kit) => {
@@ -123,7 +121,8 @@ const ManageKits = () => {
         {kits.map((kit) => (
           <div key={kit._id} className="bg-white border border-pink-100 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
             <div className="p-5">
-              <h2 className="text-xl font-semibold mb-2 text-pink-700">{kit.name}</h2>
+              <img src={kit.image} alt={kit.title} className="w-full h-48"/>
+              <h2 className="text-xl font-semibold mb-2 text-pink-700">{kit.title}</h2>
               <p className="text-gray-600 mb-4 line-clamp-3">{kit.description}</p>
               
               <div className="flex flex-col gap-1 mb-4">
@@ -135,10 +134,7 @@ const ManageKits = () => {
                   <span className="text-gray-500">Category:</span>
                   <span className="font-medium">{kit.category}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Stock:</span>
-                  <span className="font-medium">{kit.stockQuantity}</span>
-                </div>
+
               </div>
 
               <div className="flex gap-3 mt-4">

@@ -4,6 +4,7 @@ import axios from 'axios';
 import Link from 'next/link';
 import { useCartContext } from '../../context/CartContext';
 import { Search } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 const BrowseKits = () => {
   const [products, setProducts] = useState([]);
@@ -12,7 +13,9 @@ const BrowseKits = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'All');
   const { addItemToCart, isInCart, removeItemFromCart } = useCartContext();
 
   useEffect(() => {

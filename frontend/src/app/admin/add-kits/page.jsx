@@ -56,9 +56,9 @@ export default function AddKits() {
     const fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', 'diyInn')
-    fd.append('colud_name', 'drqxuctyt')
+    fd.append('cloud_name', 'drqxuctyt')
 
-    axios.post('https://api.cloudinary.com/v1_1/drqxuctyt/image/upload', fd)
+    axios.post('https://api.cloudinary.com/v1_1/drqxuctyt/auto/upload', fd)
         .then((result) => {
             toast.success('file upload successfully');
             console.log(result.data);
@@ -188,7 +188,6 @@ export default function AddKits() {
                 name="image"
                 id="image"
                 value={addkitsForm.values.image}
-                onChange={addkitsForm.handleChange}
                 className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                 placeholder="Enter image URL"
                 required
@@ -208,7 +207,6 @@ export default function AddKits() {
                 name="videourl"
                 id="videourl"
                 value={addkitsForm.values.videourl}
-                onChange={addkitsForm.handleChange}
                 className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                 placeholder="Enter video URL"
                 required

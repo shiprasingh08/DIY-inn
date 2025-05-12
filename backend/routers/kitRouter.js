@@ -46,7 +46,6 @@ router.get('/getall', (req, res) => {
 
 
 router.delete('/delete/:id', (req, res) => {
-
     Model.findByIdAndDelete(req.params.id)
         .then((result) => {
             res.status(200).json(result);
