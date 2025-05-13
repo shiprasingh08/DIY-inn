@@ -3,9 +3,6 @@ const nextConfig = {
   images: {
     domains: ['i.pinimg.com'],
   },
-  experimental: {
-    appDir: true,
-  },
   webpack(config) {
     return config;
   },
