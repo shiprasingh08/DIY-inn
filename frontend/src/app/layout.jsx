@@ -1,4 +1,4 @@
-'use client'
+
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Footer from './components/Footer';
@@ -20,10 +20,6 @@ export default function RootLayout({ children }) {
           <Navbar />
           <main className="min-h-screen pt-16">{children}</main>
           <Footer />
-        </Providers>
-      </body>
-    </html>
-  );
         </Providers>
       </body>
     </html>

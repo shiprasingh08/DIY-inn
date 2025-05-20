@@ -54,7 +54,7 @@ export default function DIYHomepage() {
   useEffect(() => {
     // Auto rotate hero images
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 3);
+      setCurrentSlide((prev) => (prev + 1) % 1);
     }, 5000);
 
     return () => clearInterval(interval);

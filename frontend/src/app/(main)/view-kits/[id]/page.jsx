@@ -240,7 +240,7 @@ function ViewKitPage() {
               </div>
 
               <button
-                disabled={checkItemInCart}
+                disabled={!!checkItemInCart(product)}
                 onClick={() => {
                   addToCart(product);
                 }}
@@ -249,7 +249,7 @@ function ViewKitPage() {
                 {checkItemInCart(product) ? 'Item already in cart' : 'Add to Cart'}
               </button>
               <button
-                disabled={checkItemInWishlist(product._id)}
+                disabled={!!checkItemInWishlist(product._id)}
                 onClick={() => {
                   addToWishlist(product);
                 }}
