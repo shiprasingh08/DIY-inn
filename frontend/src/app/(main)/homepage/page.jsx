@@ -10,7 +10,24 @@ export default function DIYHomepage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFavorite, setIsFavorite] = useState({}); // Track favorites by project ID
+  const [email, setEmail] = useState(''); // Add email state for newsletter
   const router = useRouter();
+
+  // Handler for newsletter subscription
+  const handleSubscribe = () => {
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    toast.success('Thanks for subscribing to our newsletter!');
+    setEmail(''); // Clear the input after successful subscription
+  };
 
   // Handler for search
   const handleSearch = () => {
@@ -18,15 +35,17 @@ export default function DIYHomepage() {
       toast.error('Please enter a search term');
       return;
     }
-    // Add your search logic here
+    router.push(`/browse-kits?search=${encodeURIComponent(searchQuery.trim())}`);
     toast.success(`Searching for ${searchQuery}...`);
   };
 
   // Handler for view tutorial
   const handleViewTutorial = (projectTitle) => {
+    router.push(`/browse-kits?search=${encodeURIComponent(projectTitle)}`);
     toast.success(`Opening tutorial for ${projectTitle}`);
-    // Add your tutorial navigation logic here
-  };  // Handler for category click
+  };
+
+  // Handler for category click
   const handleCategoryClick = (categoryName) => {
     // Navigate to browse-kits page with selected category
     router.push(`/browse-kits?category=${categoryName}`);
@@ -63,7 +82,7 @@ export default function DIYHomepage() {
     { 
       name: "Electronics", 
       icon: <Lightbulb className="animate-pulse" />, 
-      color: "bg-pink-100",
+      color: "bg-pink-200",
       image: "https://i.pinimg.com/736x/77/0f/ca/770fcaa73bf83f197026d2f3fe602eb9.jpg"
     },
     { 
@@ -75,32 +94,32 @@ export default function DIYHomepage() {
     { 
       name: "Crafts", 
       icon: <Paintbrush className="animate-wiggle" />, 
-      color: "bg-pink-300",
+      color: "bg-pink-200",
       image: "https://i.pinimg.com/736x/1f/af/90/1faf90382fd0cc5ab30d7c7a2852bb75.jpg"
     },
     { 
       name: "Home Decor", 
       icon: <Home className="animate-bounce" />, 
-      color: "bg-pink-400",
+      color: "bg-pink-200 h-full",
       image: "https://i.pinimg.com/736x/a4/e3/07/a4e3077804b92452b4054e94ffe7c113.jpg"
     },
     { 
       name: "Gardening", 
       icon: <Flower2 className="animate-pulse" />, 
-      color: "bg-pink-500",
+      color: "bg-pink-200",
       image: "https://i.pinimg.com/736x/6a/96/dc/6a96dc1f864cb4ed3cea560d69964caa.jpg"
     },
     { 
       name: "Other", 
       icon: <MoreHorizontal className="animate-spin-slow" />, 
-      color: "bg-pink-600",
+      color: "bg-pink-200",
       image: "https://i.pinimg.com/736x/ed/da/51/edda514a45ebdd0dae8014b3f2995408.jpg"
     }
   ];
 
   const trendingProjects = [
     
-    {
+     { 
       id: 1,
       title: "Electronics",
       description: "Craftes bulbs",
@@ -169,19 +188,21 @@ export default function DIYHomepage() {
         <div className="relative z-10">
           <h2 className="text-4xl font-bold mb-4 text-black">Create. Make. Inspire.</h2>
           <p className="text-lg mb-8 text-black max-w-2xl mx-auto">Discover amazing DIY projects and unleash your creativity with our step-by-step guides!</p>
-          <div className="relative w-full max-w-lg mx-auto">            <input 
+          <div className="relative w-full max-w-lg mx-auto">            
+            <input 
               type="text" 
               placeholder="Search for projects..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full p-4 pl-6 pr-12 rounded-full border-2 border-pink-300 focus:outline-none focus:border-pink-500"
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-full p-4 pl-6 pr-12 rounded-full border-2 border-pink-300 focus:outline-none focus:border-pink-500 transition-all duration-300 hover:shadow-lg focus:shadow-xl"
+              aria-label="Search projects"
             />
             <button 
               onClick={handleSearch}
-              className="absolute right-4 top-4 text-pink-500 hover:text-pink-600 transition-colors"
+              className="absolute right-4 top-4 text-pink-500 hover:text-pink-600 transition-all duration-300 transform hover:scale-110 active:scale-95"
             >
-              <Search size={20} />
+              <Search size={20} className="animate-pulse" />
             </button>
           </div>
 
@@ -199,58 +220,57 @@ export default function DIYHomepage() {
       </div>      {/* Featured Projects */}
       <div className="p-12 bg-white">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Featured Projects</h2>
-        <div className="max-w-3xl mx-auto space-y-8">
-          {/* First featured project */}
+        <div className="max-w-2xl mx-auto space-y-8">
           <div className="bg-pink-50 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
             <div className="relative">
               <img 
                 src="https://i.pinimg.com/736x/a4/e3/07/a4e3077804b92452b4054e94ffe7c113.jpg" 
                 alt="Handcrafted Wall Art" 
-                className="w-full h-[400px] object-cover transition-transform duration-700 hover:scale-110" 
+                className="w-full h-[300px] object-cover transition-transform duration-700 hover:scale-110" 
               />
-              <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2">
-                <Camera size={20} />
+              <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2 transform transition-all duration-300 hover:scale-110 hover:rotate-12">
+                <Camera size={20} className="animate-pulse" />
               </div>
               <div className="absolute bottom-4 left-4 bg-pink-500 text-white px-4 py-2 rounded-full">Popular</div>
             </div>
-            <div className="p-8 text-center">
-              <h3 className="text-3xl font-bold mb-4 text-black">Handcrafted Wall Art</h3>
-              <p className="text-black mb-6 text-lg">Transform your living space with this beautiful DIY wall art that combines modern aesthetics with personal creativity.</p>              <div className="flex items-center justify-center text-pink-500 mb-6">
+            <div className="p-8">
+              <h3 className="text-2xl font-bold mb-4 text-black">Handcrafted Wall Art</h3>
+              <p className="text-gray-600 mb-6">Transform your living space with this beautiful DIY wall art that combines modern aesthetics with personal creativity.</p>
+              <div className="flex items-center mb-6 text-pink-500">
                 {[...Array(5)].map((_, i) => (
                   <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 ))}
-                <span className="ml-1 text-black">(128 reviews)</span>
+                <span className="ml-2 text-gray-600">(128 reviews)</span>
               </div>
               <button 
                 onClick={() => handleViewTutorial("Handcrafted Wall Art")}
-                className="bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
+                className="w-full bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
               >
                 View Tutorial
               </button>
             </div>
           </div>
 
-          {/* Second featured project */}
           <div className="bg-pink-50 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
             <div className="relative">
               <img 
                 src="https://i.pinimg.com/736x/4b/95/28/4b9528aeddb011e81f7ead122b9a5816.jpg" 
                 alt="DIY Plant Stand" 
-                className="w-full h-[400px] object-cover transition-transform duration-700 hover:scale-110" 
+                className="w-full h-[300px] object-cover transition-transform duration-700 hover:scale-110" 
               />
-              <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2">
-                <Bookmark size={20} />
+              <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2 transform transition-all duration-300 hover:scale-110 hover:rotate-12">
+                <Bookmark size={20} className="animate-bounce" />
               </div>
               <div className="absolute bottom-4 left-4 bg-black text-white px-4 py-2 rounded-full">New</div>
             </div>
-            <div className="p-8 text-center">
-              <h3 className="text-3xl font-bold mb-4 text-black">Modern Plant Stand</h3>
-              <p className="text-black mb-6 text-lg">Create this elegant and functional plant stand using basic woodworking techniques. Perfect for indoor plants and small spaces.</p>
+            <div className="p-8">
+              <h3 className="text-2xl font-bold mb-4 text-black">Modern Plant Stand</h3>
+              <p className="text-gray-600 mb-6">Create this elegant and functional plant stand using basic woodworking techniques. Perfect for indoor plants and small spaces.</p>
               <button 
                 onClick={() => handleViewTutorial("Modern Plant Stand")}
-                className="bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
+                className="w-full bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
               >
                 View Tutorial
               </button>
@@ -275,8 +295,8 @@ export default function DIYHomepage() {
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                <div className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg">
-                  <div className="text-pink-500">
+                <div className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg transform transition-all duration-300 hover:scale-125 hover:rotate-12 group-hover:bg-pink-50">
+                  <div className="text-pink-500 transition-all duration-300 group-hover:text-pink-600">
                     {category.icon}
                   </div>
                 </div>
@@ -300,16 +320,19 @@ export default function DIYHomepage() {
                 <Heart className="text-pink-500 animate-pulse mb-4" size={40} />
                 <h2 className="text-3xl font-bold mb-4">Join Our Creative Community</h2>
                 <p className="mb-6">Get weekly DIY inspiration, tips, and exclusive tutorials delivered to your inbox!</p>
-                <div className="flex w-full max-w-md">                  <input 
+                <div className="flex w-full max-w-md">
+                  <input 
                     type="email" 
-                    placeholder="Your email address" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
                     className="flex-1 p-4 rounded-l-full text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                   <button 
-                    onClick={handleSearch} 
-                    className="bg-pink-500 px-6 py-4 rounded-r-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100">
+                    onClick={handleSubscribe}
+                    className="bg-pink-500 px-6 py-4 rounded-r-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-95"
+                  >
                     Subscribe
                   </button>
                 </div>
@@ -331,6 +354,7 @@ export default function DIYHomepage() {
           </div>
         </div>
       </div>
+
       {/* Trending Section */}
       <div className="bg-white p-12">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Trending Now</h2>
@@ -345,8 +369,8 @@ export default function DIYHomepage() {
                       alt={`${project.title}`} 
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-[1.1]" 
                     />
-                    <div className="absolute top-3 right-3 bg-pink-500 text-white rounded-full p-2 shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
-                      <Scissors size={16} />
+                    <div className="absolute top-3 right-3 bg-pink-500 text-white rounded-full p-2 shadow-lg transform transition-all duration-300 hover:scale-125 hover:rotate-45">
+                      <Scissors size={16} className="animate-bounce" />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                     <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -361,16 +385,21 @@ export default function DIYHomepage() {
                     <div className="flex items-center justify-between">
                       <button 
                         onClick={() => handleViewTutorial(project.title)}
-                        className="text-pink-500 hover:text-pink-600 text-sm font-semibold transition-all hover:scale-105 flex items-center"
+                        className="text-pink-500 hover:text-pink-600 text-sm font-semibold transition-all hover:scale-105 flex items-center group"
                       >
-                        View Project <ChevronRight size={16} className="ml-1" />
+                        View Project 
+                        <ChevronRight size={16} className="ml-1 transform transition-transform duration-300 group-hover:translate-x-1" />
                       </button>
                       <div className="flex items-center gap-3">
                         <button 
                           onClick={() => toggleFavorite(project.id)}
-                          className={`${isFavorite[project.id] ? 'text-pink-500' : 'text-gray-400'} hover:text-pink-500 transition-colors p-1 hover:scale-110`}
+                          className={`${isFavorite[project.id] ? 'text-pink-500' : 'text-gray-400'} hover:text-pink-500 transition-all duration-300 p-1 hover:scale-125 transform`}
                         >
-                          <Heart size={18} fill={isFavorite[project.id] ? "currentColor" : "none"} />
+                          <Heart 
+                            size={18} 
+                            fill={isFavorite[project.id] ? "currentColor" : "none"} 
+                            className={isFavorite[project.id] ? "animate-bounce" : "hover:animate-pulse"} 
+                          />
                         </button>
                         <span className="text-sm font-medium text-gray-600">({project.likes})</span>
                       </div>
