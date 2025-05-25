@@ -265,21 +265,9 @@ export default function AboutUsPage() {  const [isVisible, setIsVisible] = useSt
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8">
         <div className="container mx-auto px-4 md:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <div className="text-2xl font-bold">
-                <span className="text-pink-500">DIY</span>Hub
-              </div>
-              <p className="text-gray-400 mt-1">Creating tomorrow, today.</p>
-            </div>
-            <div className="flex flex-col md:flex-row md:space-x-8 text-center md:text-left">
-              <a href="#" className="hover:text-pink-400 mb-2 md:mb-0">Privacy Policy</a>
-              <a href="#" className="hover:text-pink-400 mb-2 md:mb-0">Terms of Service</a>
-              <a href="#" className="hover:text-pink-400">Contact Us</a>
-            </div>
-          </div>
+       
           <div className="mt-6 pt-6 border-t border-gray-800 text-center text-gray-400 text-sm">
-            © {new Date().getFullYear()} DIYHub. All rights reserved.
+          
           </div>
         </div>
       </footer>

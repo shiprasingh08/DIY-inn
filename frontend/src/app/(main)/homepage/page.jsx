@@ -220,7 +220,7 @@ export default function DIYHomepage() {
       </div>      {/* Featured Projects */}
       <div className="p-12 bg-white">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Featured Projects</h2>
-        <div className="max-w-2xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-pink-50 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
             <div className="relative">
               <img 
@@ -242,7 +242,7 @@ export default function DIYHomepage() {
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 ))}
-                <span className="ml-2 text-gray-600">(128 reviews)</span>
+                <span className="ml-2 text-gray-600">(28 reviews)</span>
               </div>
               <button 
                 onClick={() => handleViewTutorial("Handcrafted Wall Art")}
@@ -250,6 +250,7 @@ export default function DIYHomepage() {
               >
                 View Tutorial
               </button>
+               
             </div>
           </div>
 
@@ -263,12 +264,21 @@ export default function DIYHomepage() {
               <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2 transform transition-all duration-300 hover:scale-110 hover:rotate-12">
                 <Bookmark size={20} className="animate-bounce" />
               </div>
-              <div className="absolute bottom-4 left-4 bg-black text-white px-4 py-2 rounded-full">New</div>
+              <div className="absolute bottom-4 left-4 bg-pink-500 text-white px-4 py-2 rounded-full">New</div>
             </div>
             <div className="p-8">
               <h3 className="text-2xl font-bold mb-4 text-black">Modern Plant Stand</h3>
               <p className="text-gray-600 mb-6">Create this elegant and functional plant stand using basic woodworking techniques. Perfect for indoor plants and small spaces.</p>
+               <div className="flex items-center mb-6 text-pink-500">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+                <span className="ml-2 text-gray-600">(24 reviews)</span>
+              </div>
               <button 
+              
                 onClick={() => handleViewTutorial("Modern Plant Stand")}
                 className="w-full bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
               >
@@ -277,6 +287,8 @@ export default function DIYHomepage() {
             </div>
           </div>
         </div>
+
+        
       </div>{/* Categories */}      <div className="bg-white p-12">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Explore Categories</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -292,7 +304,7 @@ export default function DIYHomepage() {
                 <img 
                   src={category.image} 
                   alt={category.name}
-                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+                  className=" h-full w-full object-contain transition-transform duration-700 hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-40"></div>
                 <div className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg transform transition-all duration-300 hover:scale-125 hover:rotate-12 group-hover:bg-pink-50">

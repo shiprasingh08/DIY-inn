@@ -1,12 +1,12 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import { useCartContext } from '../../context/CartContext';
 import { Search } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-const BrowseKits = () => {
+const BrowseKitsContent = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -206,6 +206,20 @@ const BrowseKits = () => {
         </>
       )}
     </div>
+  );
+};
+
+const BrowseKits = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white p-4 md:p-6 text-black">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+        </div>
+      </div>
+    }>
+      <BrowseKitsContent />
+    </Suspense>
   );
 };
 
