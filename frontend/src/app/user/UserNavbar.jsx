@@ -52,17 +52,15 @@ export default function DIYNavbar() {
                 Home
               </Link>
               <Link href="/user/projects" className="text-white hover:text-pink-300 font-medium">
-                Projects
+               About Us
               </Link>
               <Link href="/user/tutorials" className="text-white hover:text-pink-300 font-medium">
-                Tutorials
+              Contact
               </Link>
               <Link href="/user/community" className="text-white hover:text-pink-300 font-medium">
-                Community
+                Browse Kits
               </Link>
-              <Link href="/user/blog" className="text-white hover:text-pink-300 font-medium">
-                Blog
-              </Link>
+            
             </div>
 
             {/* Desktop Icons */}

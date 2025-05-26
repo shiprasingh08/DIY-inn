@@ -18,17 +18,28 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
-
   const addItemToCart = (item) => {
-    setCart((prevCart) => [...prevCart, item]);
+    const itemId = item._id || item.id;
+    const existingItem = cart.find(cartItem => (cartItem._id || cartItem.id) === itemId);
+    if (existingItem) {
+      setCart(prevCart => prevCart.map(cartItem =>
+        (cartItem._id || cartItem.id) === itemId
+          ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+          : cartItem
+      ));
+    } else {
+      setCart(prevCart => [...prevCart, { ...item, quantity: 1 }]);
+    }
   };
 
   const removeItemFromCart = (item) => {
-    setCart((prevCart) => prevCart.filter((cartItem) => cartItem._id !== item._id));
+    const itemId = item._id || item.id;
+    setCart(prevCart => prevCart.filter(cartItem => (cartItem._id || cartItem.id) !== itemId));
   };
 
   const isInCart = (item) => {
-    return cart.some((cartItem) => cartItem._id === item._id);
+    const itemId = item._id || item.id;
+    return cart.some(cartItem => (cartItem._id || cartItem.id) === itemId);
   };
 
   const getCartTotal = () => {

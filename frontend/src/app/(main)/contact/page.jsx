@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, Wrench, Hammer, Paintbrush, Scissors } from 'lucide-react';
+import Navbar from '@/app/components/navbar/Navbar';
 
 export default function DIYContactPage() {
   const [formData, setFormData] = useState({
@@ -30,6 +31,8 @@ export default function DIYContactPage() {
   };
 
   return (
+    <>
+    <Navbar />
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-pink-50 to-pink-100 py-20">
@@ -214,5 +217,7 @@ export default function DIYContactPage() {
         </div>
       </section>
     </div>
+    </>
   );
+  
 }

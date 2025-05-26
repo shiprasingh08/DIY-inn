@@ -6,6 +6,7 @@ export const NavLinks = () => {
   const pathname = usePathname();
 
   const links = [
+    { href: '/', label: 'Home' },
     { href: '/browse-kits', label: 'Browse Kits' },
     { href: '/aboutus', label: 'About Us' },
     { href: '/contact', label: 'Contact' },
@@ -19,9 +20,8 @@ export const NavLinks = () => {
         <Link
           key={href}
           href={href}
-          className={`text-sm font-medium transition-colors hover:text-pink-600 ${
-            pathname === href ? 'text-pink-600' : 'text-gray-700'
-          }`}
+          className={`text-sm font-medium transition-colors hover:text-pink-600 ${pathname === href ? 'text-pink-600' : 'text-gray-700'
+            }`}
         >
           {label}
         </Link>

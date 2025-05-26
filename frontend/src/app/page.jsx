@@ -1,14 +1,69 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Heart, Lightbulb, Hammer, Paintbrush, Home, Flower2, MoreHorizontal, Camera, Scissors, Bookmark, Search, Star } from 'lucide-react';
+import { Heart, Lightbulb, Hammer, Paintbrush, Home, Flower2, MoreHorizontal, Camera, Scissors, Bookmark, Search, ChevronRight } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import Navbar from '@/app/components/navbar/Navbar';
 
 export default function DIYHomepage() {
   const [hoverCategory, setHoverCategory] = useState(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFavorite, setIsFavorite] = useState({}); // Track favorites by project ID
+  const [email, setEmail] = useState(''); // Add email state for newsletter
+  const router = useRouter();
+
+  // Handler for newsletter subscription
+  const handleSubscribe = () => {
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    toast.success('Thanks for subscribing to our newsletter!');
+    setEmail(''); // Clear the input after successful subscription
+  };
+
+  // Handler for search
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a search term');
+      return;
+    }
+    router.push(`/browse-kits?search=${encodeURIComponent(searchQuery.trim())}`);
+    toast.success(`Searching for ${searchQuery}...`);
+  };
+
+  // Handler for view tutorial
+  const handleViewTutorial = (projectTitle) => {
+    router.push(`/browse-kits?search=${encodeURIComponent(projectTitle)}`);
+    toast.success(`Opening tutorial for ${projectTitle}`);
+  };
+
+  // Handler for category click
+  const handleCategoryClick = (categoryName) => {
+    // Navigate to browse-kits page with selected category
+    router.push(`/browse-kits?category=${categoryName}`);
+    toast.success(`Exploring ${categoryName} projects`);
+  };
+
+  // Handler for favorites
+  const toggleFavorite = (projectId) => {
+    setIsFavorite(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }));
+    toast.success(isFavorite[projectId] ? 'Removed from favorites' : 'Added to favorites');
+  };
 
   useEffect(() => {
-    // Hide welcome message after 3 seconds
+    // Hide welcome message after 1 seconds
     const timer = setTimeout(() => {
       setShowWelcome(false);
     }, 3000);
@@ -19,24 +74,53 @@ export default function DIYHomepage() {
   useEffect(() => {
     // Auto rotate hero images
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 3);
+      setCurrentSlide((prev) => (prev + 1) % 1);
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
-
   const categories = [
-    { name: "Electronics", icon: <Lightbulb className="animate-pulse" />, color: "bg-pink-100"  },
-    { name: "Wood Working", icon: <Hammer className="animate-bounce" />, color: "bg-pink-200" },
-    { name: "Crafts", icon: <Paintbrush className="animate-wiggle" />, color: "bg-pink-300" },
-    { name: "Home Decor", icon: <Home className="animate-bounce" />, color: "bg-pink-400" },
-    { name: "Gardening", icon: <Flower2 className="animate-pulse" />, color: "bg-pink-500" },
-    { name: "Other", icon: <MoreHorizontal className="animate-spin-slow" />, color: "bg-pink-600" }
+    { 
+      name: "Electronics", 
+      icon: <Lightbulb className="animate-pulse" />, 
+      color: "bg-pink-200",
+      image: "https://i.pinimg.com/736x/77/0f/ca/770fcaa73bf83f197026d2f3fe602eb9.jpg"
+    },
+    { 
+      name: "Wood Working", 
+      icon: <Hammer className="animate-bounce" />, 
+      color: "bg-pink-200",
+      image: "https://i.pinimg.com/736x/4b/95/28/4b9528aeddb011e81f7ead122b9a5816.jpg"
+    },
+    { 
+      name: "Crafts", 
+      icon: <Paintbrush className="animate-wiggle" />, 
+      color: "bg-pink-200",
+      image: "https://i.pinimg.com/736x/1f/af/90/1faf90382fd0cc5ab30d7c7a2852bb75.jpg"
+    },
+    { 
+      name: "Home Decor", 
+      icon: <Home className="animate-bounce" />, 
+      color: "bg-pink-200 h-full",
+      image: "https://i.pinimg.com/736x/a4/e3/07/a4e3077804b92452b4054e94ffe7c113.jpg"
+    },
+    { 
+      name: "Gardening", 
+      icon: <Flower2 className="animate-pulse" />, 
+      color: "bg-pink-200",
+      image: "https://i.pinimg.com/736x/6a/96/dc/6a96dc1f864cb4ed3cea560d69964caa.jpg"
+    },
+    { 
+      name: "Other", 
+      icon: <MoreHorizontal className="animate-spin-slow" />, 
+      color: "bg-pink-200",
+      image: "https://i.pinimg.com/736x/ed/da/51/edda514a45ebdd0dae8014b3f2995408.jpg"
+    }
   ];
 
   const trendingProjects = [
     
-    {
+     { 
       id: 1,
       title: "Electronics",
       description: "Craftes bulbs",
@@ -75,6 +159,8 @@ export default function DIYHomepage() {
   ];
 
   return (
+    <>
+    < Navbar />
     <div className="min-h-screen bg-white flex flex-col">
       {/* Welcome Animation */}
       {showWelcome && (
@@ -105,14 +191,21 @@ export default function DIYHomepage() {
         <div className="relative z-10">
           <h2 className="text-4xl font-bold mb-4 text-black">Create. Make. Inspire.</h2>
           <p className="text-lg mb-8 text-black max-w-2xl mx-auto">Discover amazing DIY projects and unleash your creativity with our step-by-step guides!</p>
-          <div className="relative w-full max-w-lg mx-auto">
+          <div className="relative w-full max-w-lg mx-auto">            
             <input 
               type="text" 
               placeholder="Search for projects..." 
-              className="w-full p-4 pl-6 pr-12 rounded-full border-2 border-pink-300 focus:outline-none focus:border-pink-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-full p-4 pl-6 pr-12 rounded-full border-2 border-pink-300 focus:outline-none focus:border-pink-500 transition-all duration-300 hover:shadow-lg focus:shadow-xl"
+              aria-label="Search projects"
             />
-            <button className="absolute right-4 top-4 text-pink-500">
-              <Search size={20} />
+            <button 
+              onClick={handleSearch}
+              className="absolute right-4 top-4 text-pink-500 hover:text-pink-600 transition-all duration-300 transform hover:scale-110 active:scale-95"
+            >
+              <Search size={20} className="animate-pulse" />
             </button>
           </div>
 
@@ -127,86 +220,106 @@ export default function DIYHomepage() {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Featured Projects */}
-      <div className=" p-12 bg-white">
+      </div>      {/* Featured Projects */}
+      <div className="p-12 bg-white">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Featured Projects</h2>
-
-        {/* First featured project */}
-        <div className="bg-pink-50 rounded-lg p-6 max-w-4xl mx-auto shadow-lg flex flex-col md:flex-row items-center mb-8">
-          <div className="w-full md:w-1/2 mb-4 md:mb-0 md:mr-6 relative overflow-hidden rounded-lg">
-            <img src="https://i.pinimg.com/736x/a4/e3/07/a4e3077804b92452b4054e94ffe7c113.jpg" alt="Handcrafted Wall Art" className="w-full h-64 object-cover transition-transform duration-700 hover:scale-110" />
-            <div className="absolute top-2 right-2 bg-pink-500 text-white rounded-full p-2">
-              <Camera size={20} />
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-pink-50 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+            <div className="relative">
+              <img 
+                src="https://i.pinimg.com/736x/a4/e3/07/a4e3077804b92452b4054e94ffe7c113.jpg" 
+                alt="Handcrafted Wall Art" 
+                className="w-full h-[300px] object-cover transition-transform duration-700 hover:scale-110" 
+              />
+              <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2 transform transition-all duration-300 hover:scale-110 hover:rotate-12">
+                <Camera size={20} className="animate-pulse" />
+              </div>
+              <div className="absolute bottom-4 left-4 bg-pink-500 text-white px-4 py-2 rounded-full">Popular</div>
             </div>
-            <div className="absolute bottom-0 left-0 bg-pink-500 text-white px-3 py-1">Popular</div>
+            <div className="p-8">
+              <h3 className="text-2xl font-bold mb-4 text-black">Handcrafted Wall Art</h3>
+              <p className="text-gray-600 mb-6">Transform your living space with this beautiful DIY wall art that combines modern aesthetics with personal creativity.</p>
+              <div className="flex items-center mb-6 text-pink-500">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+                <span className="ml-2 text-gray-600">(28 reviews)</span>
+              </div>
+              <button 
+                onClick={() => handleViewTutorial("Handcrafted Wall Art")}
+                className="w-full bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
+              >
+                View Tutorial
+              </button>
+               
+            </div>
           </div>
-          <div className="w-full md:w-1/2">
-            <h3 className="text-2xl font-bold mb-2 text-black">Handcrafted Wall Art</h3>
-            <p className="text-black mb-4">Transform your living space with this beautiful DIY wall art that combines modern aesthetics with personal creativity.</p>
-            <div className="flex items-center text-pink-500 mb-4">
-              <span className="ml-1 text-black">(128 reviews)</span>
+
+          <div className="bg-pink-50 rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl">
+            <div className="relative">
+              <img 
+                src="https://i.pinimg.com/736x/4b/95/28/4b9528aeddb011e81f7ead122b9a5816.jpg" 
+                alt="DIY Plant Stand" 
+                className="w-full h-[300px] object-cover transition-transform duration-700 hover:scale-110" 
+              />
+              <div className="absolute top-4 right-4 bg-pink-500 text-white rounded-full p-2 transform transition-all duration-300 hover:scale-110 hover:rotate-12">
+                <Bookmark size={20} className="animate-bounce" />
+              </div>
+              <div className="absolute bottom-4 left-4 bg-pink-500 text-white px-4 py-2 rounded-full">New</div>
             </div>
-            <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-colors">
-              View Tutorial
-            </button>
+            <div className="p-8">
+              <h3 className="text-2xl font-bold mb-4 text-black">Modern Plant Stand</h3>
+              <p className="text-gray-600 mb-6">Create this elegant and functional plant stand using basic woodworking techniques. Perfect for indoor plants and small spaces.</p>
+               <div className="flex items-center mb-6 text-pink-500">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+                <span className="ml-2 text-gray-600">(24 reviews)</span>
+              </div>
+              <button 
+              
+                onClick={() => handleViewTutorial("Modern Plant Stand")}
+                className="w-full bg-pink-500 text-white px-8 py-3 rounded-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-100 text-lg"
+              >
+                View Tutorial
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Second featured project */}
-        <div className="bg-pink-50 rounded-lg p-6 max-w-4xl mx-auto shadow-lg flex flex-col md:flex-row items-center">
-          <div className="w-full md:w-1/2 mb-4 md:mb-0 md:mr-6 relative overflow-hidden rounded-lg">
-            <img src="https://i.pinimg.com/736x/4b/95/28/4b9528aeddb011e81f7ead122b9a5816.jpg" alt="DIY Plant Stand" className="w-full h-64 object-cover transition-transform duration-700 hover:scale-110" />
-            <div className="absolute top-2 right-2 bg-pink-500 text-white rounded-full p-2">
-              <Bookmark size={20} />
-            </div>
-            <div className="absolute bottom-0 left-0 bg-black text-white px-3 py-1">New</div>
-          </div>
-          <div className="w-full md:w-1/2">
-            <h3 className="text-2xl font-bold mb-2 text-black">Modern Plant Stand</h3>
-            <p className="text-black mb-4">Create this elegant and functional plant stand using basic woodworking techniques. Perfect for indoor plants and small spaces.</p>
-            <div className="flex items-center text-pink-500 mb-4">
-              <Star className="text-pink-500" size={20} />
-              <Star className="text-pink-500" size={20} />
-              <Star className="text-pink-500" size={20} />
-              <Star className="text-pink-500" size={20} />
-              <span className="ml-1 text-black">(86 reviews)</span>
-            </div>
-            <button className="bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition-colors">
-              View Tutorial
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Categories */}
-      <div className="bg-white p-12">
+        
+      </div>{/* Categories */}      <div className="bg-white p-12">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Explore Categories</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {categories.map((category, index) => (
             <div 
               key={index}
-              className={`${category.color} rounded-lg p-6 text-center shadow-md transform transition-all duration-300 hover:scale-105 cursor-pointer ${hoverCategory === index ? 'ring-4 ring-pink-500' : ''}`}
+              className={`${category.color} rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-105 cursor-pointer ${hoverCategory === index ? 'ring-2 ring-pink-500' : ''}`}
               onMouseEnter={() => setHoverCategory(index)}
               onMouseLeave={() => setHoverCategory(null)}
+              onClick={() => handleCategoryClick(category.name)}
             >
-              <div className="relative">
+              <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={'https://i.pinimg.com/736x/5e/80/94/5e80948c3d6cc1b02e8d9efd2b50e7f2.jpg'} 
-                  alt={category.name} 
-                  className="rounded-lg w-full h-40 object-cover mb-4" 
+                  src={category.image} 
+                  alt={category.name}
+                  className=" h-full w-full object-contain transition-transform duration-700 hover:scale-110"
                 />
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg"></div>
-                <div className="absolute bottom-4 left-0 right-0 text-center">
-                  <div className="bg-white rounded-full h-12 w-12 flex items-center justify-center mx-auto text-pink-500">
+                <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                <div className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg transform transition-all duration-300 hover:scale-125 hover:rotate-12 group-hover:bg-pink-50">
+                  <div className="text-pink-500 transition-all duration-300 group-hover:text-pink-600">
                     {category.icon}
                   </div>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-black">{category.name}</h3>
-              <p className="mt-2 text-black">Discover amazing {category.name.toLowerCase()} projects</p>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold text-black mb-2">{category.name}</h3>
+                <p className="text-sm text-gray-600">Discover amazing {category.name.toLowerCase()} projects</p>
+              </div>
             </div>
           ))}
         </div>
@@ -225,10 +338,16 @@ export default function DIYHomepage() {
                 <div className="flex w-full max-w-md">
                   <input 
                     type="email" 
-                    placeholder="Your email address" 
-                    className="flex-1 p-4 rounded-l-full text-black focus:outline-none"
+                    placeholder="Your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+                    className="flex-1 p-4 rounded-l-full text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
-                  <button className="bg-pink-500 px-6 py-4 rounded-r-full hover:bg-pink-600 transition-colors">
+                  <button 
+                    onClick={handleSubscribe}
+                    className="bg-pink-500 px-6 py-4 rounded-r-full hover:bg-pink-600 transition-all transform hover:scale-105 active:scale-95"
+                  >
                     Subscribe
                   </button>
                 </div>
@@ -254,32 +373,60 @@ export default function DIYHomepage() {
       {/* Trending Section */}
       <div className="bg-white p-12">
         <h2 className="text-3xl font-bold mb-8 text-black text-center">Trending Now</h2>
-        <div className="flex flex-nowrap overflow-x-auto gap-6 pb-6 max-w-6xl mx-auto hide-scrollbar">
-          {trendingProjects.map((project) => (
-            <div key={project.id} className="flex-none w-64">
-              <div className="bg-pink-50 rounded-lg overflow-hidden shadow-md">
-                <div className="relative">
-                  <img 
-                    src={project.image} 
-                    alt={`${project.title}`} 
-                    className="w-full h-40 object-cover" 
-                  />
-                  <div className="absolute top-2 right-2 bg-pink-500 text-white rounded-full p-1">
-                    <Scissors size={16} />
+        <div className="relative max-w-7xl mx-auto px-4">
+          <div className="flex flex-nowrap overflow-x-auto gap-6 pb-8 scrollbar-hide scroll-smooth -mx-4">
+            {trendingProjects.map((project) => (
+              <div key={project.id} className="flex-none w-80">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-pink-100/50">
+                  <div className="relative overflow-hidden group aspect-[4/3]">
+                    <img 
+                      src={project.image} 
+                      alt={`${project.title}`} 
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-[1.1]" 
+                    />
+                    <div className="absolute top-3 right-3 bg-pink-500 text-white rounded-full p-2 shadow-lg transform transition-all duration-300 hover:scale-125 hover:rotate-45">
+                      <Scissors size={16} className="animate-bounce" />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <div className="text-white text-sm font-medium bg-pink-500/80 backdrop-blur-sm rounded-full px-3 py-1 inline-block">
+                        {project.title}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-black">{project.title}</h3>
-                  <p className="text-sm text-black mb-2">{project.description}</p>
-                  <div className="flex items-center text-pink-500">
-                    <span className="ml-1 text-xs text-black">({project.likes})</span>
+                  <div className="p-6">
+                    <h3 className="font-bold text-lg text-black mb-2">{project.title}</h3>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{project.description}</p>
+                    <div className="flex items-center justify-between">
+                      <button 
+                        onClick={() => handleViewTutorial(project.title)}
+                        className="text-pink-500 hover:text-pink-600 text-sm font-semibold transition-all hover:scale-105 flex items-center group"
+                      >
+                        View Project 
+                        <ChevronRight size={16} className="ml-1 transform transition-transform duration-300 group-hover:translate-x-1" />
+                      </button>
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => toggleFavorite(project.id)}
+                          className={`${isFavorite[project.id] ? 'text-pink-500' : 'text-gray-400'} hover:text-pink-500 transition-all duration-300 p-1 hover:scale-125 transform`}
+                        >
+                          <Heart 
+                            size={18} 
+                            fill={isFavorite[project.id] ? "currentColor" : "none"} 
+                            className={isFavorite[project.id] ? "animate-bounce" : "hover:animate-pulse"} 
+                          />
+                        </button>
+                        <span className="text-sm font-medium text-gray-600">({project.likes})</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
+    </>
   );
 }
