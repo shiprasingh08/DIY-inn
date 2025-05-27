@@ -1,11 +1,14 @@
-import UserNavbar from "./UserNavbar";
+import AppSidebar from "./UserNavbar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function UserLayout({ children }) {
     return (
         <div>
-            <UserNavbar />
             <main className="min-h-screen">
+                <SidebarProvider>  
+                    <AppSidebar />
                 {children}
+                </SidebarProvider>
             </main>
         </div>
     );

@@ -1,8 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Heart, Star } from 'lucide-react';
+import { toast, Toaster } from 'react-hot-toast';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -36,12 +40,52 @@ export default function SignupPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
+  const handleSubmit = async () => {
+    // Basic validation
+    if (!formData.name || !formData.email || !formData.password) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (!formData.email.includes('@') || !formData.email.includes('.')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/user/add', formData);
+      toast.success('Account created successfully!');
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+    } catch (error) {
+      if (error.response?.data?.message === 'email already exists') {
+        toast.error('Email already exists. Please use a different email.');
+      } else {
+        toast.error('Something went wrong. Please try again.');
+      }
+      console.error('Signup error:', error);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden relative">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff'
+          }
+        }}
+      />
+      
       {/* Floating elements */}
       {floatingElements.map((el) => (
         <div 
@@ -64,7 +108,7 @@ export default function SignupPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-black via-pink-950 to-black bg-opacity-50 animate-gradient-shift"></div>
       
       {/* Main container */}
-      <div className={`w-full max-w-md transition-all duration-1000 transform ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} z-10 flex flex-col md:flex-row rounded-2xl shadow-2xl overflow-hidden`}>
+      <div className={`w-full max-w-prose transition-all duration-1000 transform ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} z-10 flex flex-col md:flex-row rounded-2xl shadow-2xl overflow-hidden`}>
         {/* Left column with image (visible on medium screens and larger) */}
         <div className="hidden md:block md:w-1/2 bg-pink-600 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-pink-900 opacity-90"></div>

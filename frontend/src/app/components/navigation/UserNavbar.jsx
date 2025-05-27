@@ -16,29 +16,30 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarProvider,
 } from "@/components/ui/sidebar"
 import { Label } from "@/components/ui/label"
 
 const navigationItems = [
-  { title: "Home", url: "/", icon: Home },
-  { title: "About Us", url: "/aboutus", icon: Info },
-  { title: "Contact", url: "/contact", icon: Phone },
-  { title: "Browse Kits", url: "/browse-kits", icon: Package },
+  { title: "Home", url: "/user", icon: Home },
+  { title: "About Us", url: "/user/About Us", icon: Info },
+  { title: "Contact", url: "/user/Contact", icon: Phone },
+  { title: "Browse Kits", url: "/user/Browse Kits", icon: Package },
 ]
 
 const userItems = [
-  { title: "Favorites", url: "/user/favourite", icon: Heart },
+  { title: "Favorites", url: "/user/favorites", icon: Heart },
   { title: "Shopping Cart", url: "/user/cart", icon: ShoppingBag },
   { title: "Profile", url: "/user/profile", icon: User },
 ]
 
 const orderItems = [
-  { title: "Cart System", url: "/user/cart-system", icon: ShoppingCart },
-  { title: "View Orders", url: "/user/view-order", icon: Eye },
+  { title: "Cart System", url: "/cart-system", icon: ShoppingCart },
+  { title: "View Orders", url: "/view-order", icon: Eye },
   { title: "Manage Orders", url: "/user/manage-order", icon: Settings },
 ]
 
-export function AppSidebar(props) {
+export default function UserNavbar(props) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const handleSearchChange = (e) => {
@@ -51,8 +52,9 @@ export function AppSidebar(props) {
   }
 
   return (
-    <Sidebar {...props} className="border-r border-pink-200 bg-gradient-to-b from-black to-gray-900">
-      <SidebarHeader className="border-b border-pink-200/20 bg-black/50">
+    <SidebarProvider>
+      <Sidebar {...props} className="border-r border-pink-200 bg-gradient-to-b from-black to-gray-900">
+        <SidebarHeader className="border-b border-pink-200/20 bg-black/50">
         <div className="flex items-center gap-2 px-4 py-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-pink-500">
             <Package className="h-4 w-4 text-white" />
@@ -147,7 +149,6 @@ export function AppSidebar(props) {
 
       <SidebarRail />
     </Sidebar>
+    </SidebarProvider>
   )
 }
-
-export default AppSidebar

@@ -89,7 +89,7 @@ export default function DIYHomepage() {
     { 
       name: "Wood Working", 
       icon: <Hammer className="animate-bounce" />, 
-      color: "bg-pink-200",
+      color: "bg-pink-200 ",
       image: "https://i.pinimg.com/736x/4b/95/28/4b9528aeddb011e81f7ead122b9a5816.jpg"
     },
     { 
@@ -101,7 +101,7 @@ export default function DIYHomepage() {
     { 
       name: "Home Decor", 
       icon: <Home className="animate-bounce" />, 
-      color: "bg-pink-200 h-full",
+      color: "bg-pink-200 ",
       image: "https://i.pinimg.com/736x/a4/e3/07/a4e3077804b92452b4054e94ffe7c113.jpg"
     },
     { 

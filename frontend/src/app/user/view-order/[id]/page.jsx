@@ -9,9 +9,8 @@ export default function ViewOrder() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/api/orders/${id}`);
+    const fetchOrder = async () => {      try {
+        const response = await fetch(`http://localhost:5000/order/getbyid/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch order');
         }
@@ -92,59 +91,44 @@ export default function ViewOrder() {
               </span>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Order Information</h2>
               <div className="space-y-2">
-                <p className="text-gray-600">Order Date: {order.orderDate}</p>
-                <p className="text-gray-600">Estimated Delivery: {order.estimatedDelivery}</p>
-                <p className="text-gray-600">Total Amount: ${order.totalAmount}</p>
+                <p className="text-gray-600">Order Date: {new Date(order.orderDate).toLocaleDateString()}</p>
+                <p className="text-gray-600">Status: {order.status}</p>
+                <p className="text-gray-600">Customer Name: {order.customerName}</p>
+                <p className="text-gray-600">Email: {order.email}</p>
               </div>
             </div>
             
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Shipping Address</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Shipping Details</h2>
               <div className="space-y-2">
-                <p className="text-gray-600">{order.shippingAddress.name}</p>
-                <p className="text-gray-600">{order.shippingAddress.street}</p>
-                <p className="text-gray-600">
-                  {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}
-                </p>
-                <p className="text-gray-600">{order.shippingAddress.country}</p>
+                <div className="text-gray-600 whitespace-pre-wrap">{order.shippingAddress}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Order Items */}
+        {/* Order Details */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Items</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Details</h2>
           <div className="space-y-4">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex items-center p-4 border border-gray-200 rounded-lg">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-24 h-24 object-cover rounded-md"
-                />
-                <div className="ml-4 flex-grow">
-                  <h3 className="font-medium text-gray-900">{item.name}</h3>
-                  <p className="text-gray-600">Quantity: {item.quantity}</p>
-                  <p className="text-gray-600">Price: ${item.price}</p>
-                  <span className={`inline-block px-2 py-1 mt-2 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                    {item.status}
-                  </span>
-                </div>
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <div className="ml-4 flex-grow">
+                <h3 className="font-medium text-gray-900">{order.product}</h3>
+                <p className="text-gray-600">Quantity: {order.quantity}</p>
+                {order.customization && (
+                  <p className="text-gray-600 mt-2">
+                    <span className="font-medium">Customization:</span><br/>
+                    {order.customization}
+                  </p>
+                )}
+                <span className={`inline-block px-2 py-1 mt-2 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                  {order.status}
+                </span>
               </div>
-            ))}
-          </div>
-          
-          {/* Order Summary */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-              <span className="text-2xl font-bold text-pink-500">${order.totalAmount}</span>
             </div>
           </div>
 

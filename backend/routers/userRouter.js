@@ -75,15 +75,20 @@ router.delete('/delete/:id', (req, res) => {
         .catch((err) => {
             console.log(err);
             res.status(500).json(err);
-        });
+        }); 
 });
 
 router.post('/authenticate', (req, res) => {
-    Model.findOne(req.body)
+    console.log(req.body);
+    
+    const { email, password } = req.body;
+    Model.findOne({ email })
         .then((result) => {
-            if (result) {
-                const { _id, name, email, password } = result;
-                const payload = { _id, name, email, password };
+            console.log(result);
+            
+            if (result && result.password === password) {
+                const { _id, name, email } = result;
+                const payload = { _id, name, email };
                 // generate token
                 jwt.sign(
                     payload,
@@ -94,12 +99,12 @@ router.post('/authenticate', (req, res) => {
                             console.log(err);
                             res.status(500).json(err);
                         } else {
-                            res.status(200).json({ token });
+                            res.status(200).json({ token, username: name, email });
                         }
                     }
                 )
             } else {
-                res.status(401).json({ message: 'invalid credentials' });
+                res.status(401).json({ message: 'Invalid email or password' });
             }
         }).catch((err) => {
             console.log(err);

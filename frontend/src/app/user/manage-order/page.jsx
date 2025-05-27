@@ -1,11 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, Package, ShoppingBag, Truck, CheckCircle, AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function OrderManagement() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('all');
   const [sortDirection, setSortDirection] = useState('desc');
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Sample order data
   const orders = [
@@ -55,10 +58,14 @@ export default function OrderManagement() {
     }
   ];
 
-  // Filter orders based on active tab
+  // Filter orders based on active tab and search query
   const filteredOrders = orders.filter(order => {
-    if (activeTab === 'all') return true;
-    return order.status === activeTab;
+    const matchesTab = activeTab === 'all' || order.status === activeTab;
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery === '' || 
+      order.id.toLowerCase().includes(searchLower) ||
+      order.items.some(item => item.name.toLowerCase().includes(searchLower));
+    return matchesTab && matchesSearch;
   });
 
   // Sort orders based on date
@@ -118,10 +125,9 @@ export default function OrderManagement() {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 w-full">
+      <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-pink-500">
           {/* Header */}
           <div className="mb-8">
@@ -134,11 +140,12 @@ export default function OrderManagement() {
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search size={18} className="text-gray-400" />
-              </div>
-              <input
+              </div>              <input
                 type="text"
                 placeholder="Search orders by ID or item name..."
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex gap-4">
@@ -283,8 +290,10 @@ export default function OrderManagement() {
                           <button className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2">
                             Cancel Order
                           </button>
-                        )}
-                        <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2">
+                        )}                        <button 
+                          onClick={() => router.push(`/user/view-order/${order.id}`)}
+                          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+                        >
                           View Details
                         </button>
                       </div>
