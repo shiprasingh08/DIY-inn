@@ -1,42 +1,139 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, Edit, Trash2, Eye, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
+// Remove sample data and implement API fetch
 export default function AdminOrderManagement() {
-  const [sortField, setSortField] = useState('date');
+  const router = useRouter();
+  const [sortField, setSortField] = useState('orderDate');
   const [sortDirection, setSortDirection] = useState('desc');
   const [selectedTab, setSelectedTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Sample data for orders
-  const orders = [
-    { id: 'ORD-9385', customer: 'Varsha Singh', date: '2025-05-10', total: 129.99, status: 'completed', items: 3 },
-    { id: 'ORD-9384', customer: 'Vaishnavi', date: '2025-05-10', total: 85.50, status: 'processing', items: 2 },
-    { id: 'ORD-9383', customer: 'Arpita singh', date: '2025-05-09', total: 210.75, status: 'completed', items: 4 },
-    { id: 'ORD-9382', customer: 'Sanjana', date: '2025-05-09', total: 45.99, status: 'cancelled', items: 1 },
-    { id: 'ORD-9381', customer: 'Princy', date: '2025-05-08', total: 167.25, status: 'processing', items: 3 },
-    { id: 'ORD-9380', customer: 'Riya', date: '2025-05-08', total: 312.00, status: 'completed', items: 6 },
-  ];
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch orders data from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        // Update to the correct backend endpoint
+        const response = await fetch('http://localhost:5000/order/getall');
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setOrders(data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch orders:', err);
+        setError('Failed to load orders. Please try again later.');
+        // Fallback to empty array if fetch fails
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (activeDropdown && !event.target.closest('.actions-dropdown')) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeDropdown]);
+
+  // Actions handlers
+  const handleViewOrder = (orderId) => {
+    router.push(`/admin/view-order/${orderId}`);
+  };
+
+  const handleEditOrder = (orderId) => {
+    router.push(`/admin/view-order/${orderId}?edit=true`);
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm('Are you sure you want to delete this order?')) {
+      try {
+        // Update to the correct backend endpoint
+        const response = await fetch(`http://localhost:5000/order/delete/${orderId}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        // Update local state after successful API call
+        const updatedOrders = orders.filter(order => order._id !== orderId);
+        setOrders(updatedOrders);
+      } catch (err) {
+        console.error('Failed to delete order:', err);
+        alert('Failed to delete order. Please try again.');
+      }
+    }
+  };
+
+  const handleMoreOptions = (orderId, event) => {
+    event.stopPropagation();
+    setActiveDropdown(activeDropdown === orderId ? null : orderId);
+  };
+
+  const handleFilterClick = () => {
+    setShowFilterMenu(!showFilterMenu);
+  };
 
   // Filter orders based on selected tab and search term
   const filteredOrders = orders.filter(order => {
+    // Match status from backend model (pending, processing, shipped, delivered, cancelled)
     const matchesTab = selectedTab === 'all' || order.status === selectedTab;
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+      (order._id && order._id.toLowerCase().includes(searchTerm.toLowerCase())) || 
+      (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.email && order.email.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesTab && matchesSearch;
   });
 
   // Sort orders based on sort field and direction
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     let comparison = 0;
-    if (sortField === 'date') {
-      comparison = new Date(a.date) - new Date(b.date);
+    if (sortField === 'orderDate') {
+      comparison = new Date(a.orderDate) - new Date(b.orderDate);
     } else if (sortField === 'total') {
       comparison = a.total - b.total;
-    } else if (sortField === 'customer') {
-      comparison = a.customer.localeCompare(b.customer);
-    } else if (sortField === 'id') {
-      comparison = a.id.localeCompare(b.id);
+    } else if (sortField === 'customerName') {
+      comparison = a.customerName.localeCompare(b.customerName);
+    } else if (sortField === '_id') {
+      comparison = a._id.localeCompare(b._id);
     }
     return sortDirection === 'asc' ? comparison : -comparison;
   });
@@ -52,10 +149,14 @@ export default function AdminOrderManagement() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
+      case 'delivered':
         return 'bg-green-100 text-green-800';
       case 'processing':
         return 'bg-blue-100 text-blue-800';
+      case 'shipped':
+        return 'bg-purple-100 text-purple-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
@@ -65,15 +166,34 @@ export default function AdminOrderManagement() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed':
+      case 'delivered':
         return <CheckCircle className="w-4 h-4" />;
       case 'processing':
+        return <Clock className="w-4 h-4" />;
+      case 'shipped':
+        return <Clock className="w-4 h-4" />;
+      case 'pending':
         return <Clock className="w-4 h-4" />;
       case 'cancelled':
         return <XCircle className="w-4 h-4" />;
       default:
         return null;
     }
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date) 
+      ? date.toLocaleDateString() 
+      : 'N/A';
+  };
+
+  // Calculate total items in an order
+  const calculateTotalItems = (items) => {
+    if (!items || !Array.isArray(items)) return 0;
+    return items.reduce((total, item) => total + (item.quantity || 0), 0);
   };
 
   return (
@@ -127,14 +247,24 @@ export default function AdminOrderManagement() {
                   Processing
                 </button>
                 <button 
-                  onClick={() => setSelectedTab('completed')} 
+                  onClick={() => setSelectedTab('shipped')} 
                   className={`px-4 py-2 text-sm font-medium rounded-md ${
-                    selectedTab === 'completed' 
+                    selectedTab === 'shipped' 
                       ? 'bg-pink-100 text-pink-700' 
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  Completed
+                  Shipped
+                </button>
+                <button 
+                  onClick={() => setSelectedTab('delivered')} 
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    selectedTab === 'delivered' 
+                      ? 'bg-pink-100 text-pink-700' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Delivered
                 </button>
                 <button 
                   onClick={() => setSelectedTab('cancelled')} 
@@ -170,112 +300,231 @@ export default function AdminOrderManagement() {
 
           {/* Orders Table */}
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('id')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Order ID</span>
-                      {sortField === 'id' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('customer')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Customer</span>
-                      {sortField === 'customer' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('date')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Date</span>
-                      {sortField === 'date' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Items
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('total')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Total</span>
-                      {sortField === 'total' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-pink-600">{order.id}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{order.customer}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{order.date}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{order.items}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">${order.total.toFixed(2)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                        <span className="mr-1">{getStatusIcon(order.status)}</span>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button className="text-gray-400 hover:text-gray-500">
-                          <Eye className="w-5 h-5" />
-                        </button>
-                        <button className="text-blue-400 hover:text-blue-500">
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button className="text-red-400 hover:text-red-500">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                        <button className="text-gray-400 hover:text-gray-500">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </button>
+            {loading ? (
+              <div className="flex justify-center items-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+                <span className="ml-2">Loading orders...</span>
+              </div>
+            ) : error ? (
+              <div className="p-8 text-center text-red-500">
+                <p>{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="mt-4 px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : sortedOrders.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <p>No orders found matching your criteria.</p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('_id')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Order ID</span>
+                        {sortField === '_id' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
                       </div>
-                    </td>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('customerName')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Customer</span>
+                        {sortField === 'customerName' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('orderDate')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Date</span>
+                        {sortField === 'orderDate' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Items
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('total')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Total</span>
+                        {sortField === 'total' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedOrders.map((order) => (
+                    <tr key={order._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-pink-600">{order._id}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{order.customerName}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{formatDate(order.orderDate)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{calculateTotalItems(order.items)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">${order.total ? order.total.toFixed(2) : '0.00'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                          <span className="mr-1">{getStatusIcon(order.status)}</span>
+                          {order.status && order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="relative flex items-center justify-end space-x-2 actions-dropdown">
+                          {!isMobileView ? (
+                            <>
+                              <button 
+                                onClick={() => handleViewOrder(order._id)}
+                                className="p-1.5 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                                title="View Order"
+                              >
+                                <Eye className="w-5 h-5" />
+                              </button>
+                              <button 
+                                onClick={() => handleEditOrder(order._id)}
+                                className="p-1.5 rounded-full text-blue-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                title="Edit Order"
+                              >
+                                <Edit className="w-5 h-5" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteOrder(order._id)}
+                                className="p-1.5 rounded-full text-red-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                title="Delete Order"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                              <div className="relative">
+                                <button 
+                                  onClick={(e) => handleMoreOptions(order._id, e)}
+                                  className="p-1.5 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                                  title="More Options"
+                                >
+                                  <MoreHorizontal className="w-5 h-5" />
+                                </button>
+                                {activeDropdown === order._id && (
+                                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="py-1" role="menu">
+                                      <button
+                                        className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                        onClick={() => {
+                                          // Add change status logic
+                                          setActiveDropdown(null);
+                                        }}
+                                      >
+                                        Change Status
+                                      </button>
+                                      <button
+                                        className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                        onClick={() => {
+                                          // Add print logic
+                                          setActiveDropdown(null);
+                                        }}
+                                      >
+                                        Print Order
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            // Mobile view: Show only more options button
+                            <div className="relative">
+                              <button 
+                                onClick={(e) => handleMoreOptions(order._id, e)}
+                                className="p-1.5 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                              >
+                                <MoreHorizontal className="w-5 h-5" />
+                              </button>
+                              {activeDropdown === order._id && (
+                                <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                  <div className="py-1" role="menu">
+                                    <button
+                                      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                      onClick={() => handleViewOrder(order._id)}
+                                    >
+                                      View Order
+                                    </button>
+                                    <button
+                                      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                      onClick={() => handleEditOrder(order._id)}
+                                    >
+                                      Edit Order
+                                    </button>
+                                    <button
+                                      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                      onClick={() => handleDeleteOrder(order._id)}
+                                    >
+                                      Delete Order
+                                    </button>
+                                    <button
+                                      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                      onClick={() => {
+                                        // Add change status logic
+                                        setActiveDropdown(null);
+                                      }}
+                                    >
+                                      Change Status
+                                    </button>
+                                    <button
+                                      className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                                      onClick={() => {
+                                        // Add print logic
+                                        setActiveDropdown(null);
+                                      }}
+                                    >
+                                      Print Order
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Pagination */}

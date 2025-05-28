@@ -1,73 +1,109 @@
-'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'react-hot-toast'
-import axios from 'axios'
-import { useFormik } from 'formik'
+"use client"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "react-hot-toast"
+import axios from "axios"
+import { useFormik } from "formik"
+import { X, Upload, Play } from "lucide-react"
+import Image from "next/image"
 
 export default function AddKits() {
   const router = useRouter()
+  const [imagePreview, setImagePreview] = useState("")
+  const [videoPreview, setVideoPreview] = useState("")
+  const [isImageUploading, setIsImageUploading] = useState(false)
+  const [isVideoUploading, setIsVideoUploading] = useState(false)
 
   const addkitsForm = useFormik({
     initialValues: {
-      name: '',
-      brand: '',
-      category: '',
-      price: '',
-      description: '',
-      image: '',
-      videourl: '',
-      stock: 0
+      name: "",
+      brand: "",
+      category: "",
+      price: "",
+      description: "",
+      image: "",
+      videourl: "",
+      stock: 0,
     },
-    onSubmit: (values, {resetForm}) => {
-      axios.post('http://localhost:5000/kit/add', values)
-      .then((result) => {
-        console.log(result.data);
-        toast.success('Kit added successfully!')
-        resetForm();
-      }).catch((err) => {
-        console.log(err);
-        toast.error('Failed to add kit. Please try again.')
-      });
-    }
+    onSubmit: (values, { resetForm }) => {
+      axios
+        .post("http://localhost:5000/kit/add", values)
+        .then((result) => {
+          console.log(result.data)
+          toast.success("Kit added successfully!")
+          resetForm()
+          setImagePreview("")
+          setVideoPreview("")
+        })
+        .catch((err) => {
+          console.log(err)
+          toast.error("Failed to add kit. Please try again.")
+        })
+    },
   })
 
   const upload = (e) => {
-    const file = e.target.files[0];
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', 'diyInn')
-    fd.append('colud_name', 'drqxuctyt')
+    const file = e.target.files[0]
+    if (!file) return
 
-    axios.post('https://api.cloudinary.com/v1_1/drqxuctyt/image/upload', fd)
-        .then((result) => {
-            toast.success('file upload successfully');
-            console.log(result.data);
-            // setPreview(result.data.url);
-            addkitsForm.setFieldValue('image', result.data.url);
-        }).catch((err) => {
-            console.log(err);
-            toast.error('failed to upload file');
-        });
+    setIsImageUploading(true)
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("upload_preset", "diyInn")
+    fd.append("cloud_name", "drqxuctyt")
+
+    axios
+      .post("https://api.cloudinary.com/v1_1/drqxuctyt/image/upload", fd)
+      .then((result) => {
+        toast.success("Image uploaded successfully")
+        console.log(result.data)
+        setImagePreview(result.data.url)
+        addkitsForm.setFieldValue("image", result.data.url)
+      })
+      .catch((err) => {
+        console.log(err)
+        toast.error("Failed to upload image")
+      })
+      .finally(() => {
+        setIsImageUploading(false)
+      })
   }
-  
-  const uploadvideo = (e) => {
-    const file = e.target.files[0];
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', 'diyInn')
-    fd.append('cloud_name', 'drqxuctyt')
 
-    axios.post('https://api.cloudinary.com/v1_1/drqxuctyt/auto/upload', fd)
-        .then((result) => {
-            toast.success('file upload successfully');
-            console.log(result.data);
-            // setPreview(result.data.url);
-            addkitsForm.setFieldValue('videourl', result.data.url);
-        }).catch((err) => {
-            console.log(err);
-            toast.error('failed to upload file');
-        });
+  const uploadvideo = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setIsVideoUploading(true)
+    const fd = new FormData()
+    fd.append("file", file)
+    fd.append("upload_preset", "diyInn")
+    fd.append("cloud_name", "drqxuctyt")
+
+    axios
+      .post("https://api.cloudinary.com/v1_1/drqxuctyt/auto/upload", fd)
+      .then((result) => {
+        toast.success("Video uploaded successfully")
+        console.log(result.data)
+        setVideoPreview(result.data.url)
+        addkitsForm.setFieldValue("videourl", result.data.url)
+      })
+      .catch((err) => {
+        console.log(err)
+        toast.error("Failed to upload video")
+      })
+      .finally(() => {
+        setIsVideoUploading(false)
+      })
+  }
+
+  const removeImage = () => {
+    setImagePreview("")
+    addkitsForm.setFieldValue("image", "")
+  }
+
+  const removeVideo = () => {
+    setVideoPreview("")
+    addkitsForm.setFieldValue("videourl", "")
   }
 
   return (
@@ -138,7 +174,7 @@ export default function AddKits() {
 
             <div>
               <label className="block text-sm font-medium text-black" htmlFor="price">
-                Price 
+                Price *
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -161,55 +197,129 @@ export default function AddKits() {
 
             <div>
               <label className="block text-sm font-medium text-black" htmlFor="description">
-                Description 
+                Description *
               </label>
               <textarea
                 name="description"
                 id="description"
                 value={addkitsForm.values.description}
                 onChange={addkitsForm.handleChange}
-                rows="4"
+                rows={4}
                 className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
                 placeholder="Enter detailed description of the kit"
                 required
               />
             </div>
 
+            {/* Image Upload Section */}
             <div>
               <label className="block text-sm font-medium text-black" htmlFor="upload">
-                Image URL 
-                <span className="ml-2 inline-block px-2 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-md cursor-pointer hover:bg-pink-200">
-                  Browse
-                  <input type="file" onChange={upload} id='upload' hidden/>
-                </span>
+                Kit Image *
               </label>
+
+              {!imagePreview ? (
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-pink-300 border-dashed rounded-md hover:border-pink-400 transition-colors">
+                  <div className="space-y-1 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-pink-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-pink-600 hover:text-pink-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-pink-500"
+                      >
+                        <span>{isImageUploading ? "Uploading..." : "Upload an image"}</span>
+                        <input
+                          type="file"
+                          onChange={upload}
+                          id="upload"
+                          className="sr-only"
+                          accept="image/*"
+                          disabled={isImageUploading}
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1 relative">
+                  <div className="relative w-full h-48 rounded-md overflow-hidden border-2 border-pink-200">
+                    <Image src={imagePreview || "/placeholder.svg"} alt="Kit preview" fill className="object-cover" />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500 text-center">Image uploaded successfully</p>
+                </div>
+              )}
+
               <input
                 type="text"
                 name="image"
-                id="image"
                 value={addkitsForm.values.image}
-                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                placeholder="Enter image URL"
-                required
+                className="mt-2 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                placeholder="Image URL will appear here"
+                readOnly
               />
             </div>
-            
+
+            {/* Video Upload Section */}
             <div>
               <label className="block text-sm font-medium text-black" htmlFor="uploadvideo">
-                Video URL 
-                <span className="ml-2 inline-block px-2 py-1 text-xs font-medium bg-pink-100 text-pink-800 rounded-md cursor-pointer hover:bg-pink-200">
-                  Browse
-                  <input type="file" onChange={uploadvideo} id='uploadvideo' hidden/>
-                </span>
+                Kit Video (Optional)
               </label>
+
+              {!videoPreview ? (
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-pink-300 border-dashed rounded-md hover:border-pink-400 transition-colors">
+                  <div className="space-y-1 text-center">
+                    <Play className="mx-auto h-12 w-12 text-pink-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="uploadvideo"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-pink-600 hover:text-pink-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-pink-500"
+                      >
+                        <span>{isVideoUploading ? "Uploading..." : "Upload a video"}</span>
+                        <input
+                          type="file"
+                          onChange={uploadvideo}
+                          id="uploadvideo"
+                          className="sr-only"
+                          accept="video/*"
+                          disabled={isVideoUploading}
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">MP4, MOV, AVI up to 100MB</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1 relative">
+                  <div className="relative w-full h-48 rounded-md overflow-hidden border-2 border-pink-200 bg-black">
+                    <video src={videoPreview} controls className="w-full h-full object-contain" />
+                    <button
+                      type="button"
+                      onClick={removeVideo}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500 text-center">Video uploaded successfully</p>
+                </div>
+              )}
+
               <input
                 type="text"
                 name="videourl"
-                id="videourl"
                 value={addkitsForm.values.videourl}
-                className="mt-1 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                placeholder="Enter video URL"
-                required
+                className="mt-2 block w-full rounded-md border border-pink-200 px-3 py-2 shadow-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                placeholder="Video URL will appear here"
+                readOnly
               />
             </div>
 

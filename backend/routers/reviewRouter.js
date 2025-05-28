@@ -4,15 +4,50 @@ const ReviewModel = require('../models/reviewModel');
 
 // Add a new review
 router.post('/add', (req, res) => {
-    new ReviewModel(req.body).save()
+    const { product, user, rating, comment } = req.body;
+
+    // Basic validation
+    if (!product || !user || !rating || !comment) {
+        return res.status(400).json({ 
+            message: 'Missing required fields',
+            details: {
+                product: !product ? 'Product ID is required' : null,
+                user: !user ? 'User ID is required' : null,
+                rating: !rating ? 'Rating is required' : null,
+                comment: !comment ? 'Comment is required' : null
+            }
+        });
+    }
+
+    const newReview = new ReviewModel({
+        product,
+        user,
+        rating,
+        comment,
+        images: req.body.images || [],
+        createdAt: new Date()
+    });
+
+    newReview.save()
         .then((result) => {
-            result.populate('user').then((populatedResult) => {
-                res.status(201).json(populatedResult);
-            });
+            // Populate with user info if needed
+            ReviewModel.findById(result._id)
+                .populate('user', 'name email')
+                .then(populatedReview => {
+                    res.status(201).json(populatedReview);
+                })
+                .catch(err => {
+                    console.error('Error populating review:', err);
+                    // Return the unpopulated result instead of error
+                    res.status(201).json(result);
+                });
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).json({ message: 'Error adding review' });
+            console.error('Error adding review:', err);
+            res.status(500).json({ 
+                message: 'Error adding review', 
+                error: err.message || 'Database error'
+            });
         });
 });
 

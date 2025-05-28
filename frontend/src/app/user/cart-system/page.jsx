@@ -1,345 +1,563 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trash2, Heart, ShoppingBag, Gift, ChevronRight, X, Hammer, ShoppingCart as CartIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/app/context/CartContext';
+import Script from 'next/script';
 
 export default function ShoppingCart() {
-  // Cart state
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Pink Acrylic Paint Set",
-      price: 24.99,
-      quantity: 1,
-      image: "https://i.pinimg.com/736x/6b/aa/99/6baa995b34b4598ebe9f7b08462217f8.jpg",
-      category: "Painting Supplies"
-    },
-    {
-      id: 2,
-      name: "Black Wood Stain",
-      price: 19.99,
-      quantity: 2,
-      image: "https://i.pinimg.com/736x/df/97/c9/df97c970c7d01a4076d721c516049dcc.jpg",
-      category: "Wood Finishing"
-    },
-    {
-      id: 3,
-      name: "White Canvas Pack (5 pcs)",
-      price: 32.99,
-      quantity: 1,
-      image: "https://i.pinimg.com/736x/d2/d6/b5/d2d6b57052071e11183ffe237ef4ec72.jpg",
-      category: "Art Supplies"
-    }
-  ]);
+  const router = useRouter();
+  const { cart, addItemToCart, removeItemFromCart, clearCart: clearCartContext } = useCart();
 
-  // Recommended products
-  const [recommendedProducts] = useState([
-    {
-      id: 4,
-      name: "Pink Craft Paper",
-      price: 8.99,
-      image: "https://i.pinimg.com/736x/30/a7/08/30a70887397d5ebb6db03c0f98f61aa4.jpg",
-      category: "Paper Crafts"
-    },
-    {
-      id: 5,
-      name: "Black Sharpie Markers",
-      price: 11.99,
-      image: "https://i.pinimg.com/736x/1e/ef/f1/1eeff126818a6443a1cfba20db7dc497.jpg",
-      category: "Art Supplies"
-    },
-    {
-      id: 6,
-      name: "White Polymer Clay",
-      price: 15.99,
-      image: "https://i.pinimg.com/736x/95/7a/0d/957a0d4e92b370eeb3e7e0fe1344eacc.jpg",
-      category: "Modeling"
-    },
-    {
-      id: 8,
-      name: "Craft Scissors Set",
-      price: 12.99,
-      image: "https://i.pinimg.com/736x/ed/0c/f7/ed0cf7d8b129916db42166eaebfbe0df.jpg",
-      category: "Tools"
-    },
-    {
-      id: 9,
-      name: "Glitter Pack (12 colors)",
-      price: 9.99,
-      image: "https://i.pinimg.com/736x/c6/58/48/c658488a8e85e0cebccc9b5cf2ca30be.jpg",
-      category: "Decorative"
-    },
-    {
-      id: 10,
-      name: "Paint Brush Set",
-      price: 16.99,
-      image: "https://i.pinimg.com/736x/90/c5/f7/90c5f733b26fe9c563a8d7018db146b0.jpg",
-      category: "Painting Supplies"
-    },
-    {
-      id: 11,
-      name: "Hot Glue Gun",
-      price: 14.99,
-      image: "https://i.pinimg.com/736x/a4/94/12/a4941298ab4ce4c850e35c731ec0406f.jpg",
-      category: "Tools"
-    },
-    {
-      id: 12,
-      name: "Washi Tape Collection",
-      price: 7.99,
-      image: "https://i.pinimg.com/736x/57/27/d7/5727d700bec2e585a2664543da4a94bd.jpg",
-      category: "Decorative"
-    },
-    {
-      id: 13,
-      name: "Craft Storage Box",
-      price: 19.99,
-      image: "https://i.pinimg.com/736x/94/31/be/9431be643d7221ea7e30ba86c0d813ed.jpg",
-      category: "Organization"
-    }
-  ]);
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    shippingAddress: '',
+    paymentMethod: 'cod'
+  });
 
-  // Saved items
-  const [savedItems, setSavedItems] = useState([
-    {
-      id: 7,
-      name: "DIY Jewelry Kit",
-      price: 27.99,
-      image: "https://i.pinimg.com/736x/f4/d8/e0/f4d8e0d8ac34620647a7fcb5fa653b4d.jpg"
-    }
-  ]);
-
-  // Promo code state
-  const [promoCode, setPromoCode] = useState("");
+  // Additional states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [savedItems, setSavedItems] = useState([]);
+  const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
-  const [discount, setDiscount] = useState(0);
+  const [razorpayOrder, setRazorpayOrder] = useState(null);
 
-  // Calculate subtotal
-  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  // Form error state
+  const [formErrors, setFormErrors] = useState({});
 
-  // Shipping cost
-  const shipping = subtotal > 100 ? 0 : 5.99;
+  // Calculate totals
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+  const discount = promoApplied ? subtotal * 0.1 : 0; // 10% discount with promo code
+  const total = subtotal - discount;
 
-  // Calculate total
-  const total = subtotal + shipping - discount;
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.name.trim()) errors.name = 'Name is required';
+    if (!formData.email.trim()) errors.email = 'Email is required';
+    if (!formData.shippingAddress.trim()) errors.shippingAddress = 'Shipping address is required';
+    return errors;
+  };
+
+  // Initialize Razorpay
+  const initializeRazorpayUPI = async () => {
+    if (cart.length === 0) {
+      setError('Your cart is empty!');
+      return;
+    }
+
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // Create Razorpay order from backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: total,
+          currency: 'INR',
+          receipt: `receipt_${Date.now()}`
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment order');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setRazorpayOrder(data.order);
+        openRazorpayCheckout(data.order);
+      } else {
+        throw new Error(data.message || 'Failed to create payment order');
+      }
+    } catch (error) {
+      console.error('Error initializing payment:', error);
+      setError('Failed to initialize payment. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Open Razorpay checkout
+  const openRazorpayCheckout = async (order) => {
+    try {
+      // Get Razorpay key from API route
+      const keyResponse = await fetch('/api/razorpay');
+      const keyData = await keyResponse.json();
+      
+      const options = {
+        key: keyData.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'DIY Inn',
+        description: 'DIY Kits Purchase',
+        order_id: order.id,
+        handler: function (response) {
+          // Handle successful payment
+          verifyPayment(response);
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: '', // Add phone number field if needed
+        },
+        notes: {
+          address: formData.shippingAddress
+        },
+        theme: {
+          color: '#ec4899', // Pink-500 from Tailwind
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+            setError('Payment cancelled. Please try again.');
+          }
+        }
+      };
+      
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error('Error opening Razorpay:', error);
+      setError('Failed to initialize payment interface. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  // Verify payment with backend
+  const verifyPayment = async (paymentResponse) => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/verify-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentResponse)
+      });
+
+      if (!response.ok) {
+        throw new Error('Payment verification failed');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Create order after successful payment
+        await createOrder('upi');
+      } else {
+        throw new Error(data.message || 'Payment verification failed');
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      setError('Payment verification failed. Please contact support.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create order
+  const createOrder = async (paymentMethodUsed) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Prepare order data
+      const orderData = {
+        customerName: formData.name,
+        email: formData.email,
+        shippingAddress: formData.shippingAddress,
+        items: cart.map(item => ({
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity || 1,
+          image: item.image
+        })),
+        subtotal: subtotal,
+        shipping: 0,
+        total: total,
+        paymentMethod: paymentMethodUsed || formData.paymentMethod,
+        status: paymentMethodUsed === 'upi' ? 'processing' : 'pending',
+        orderDate: new Date().toISOString()
+      };
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      const order = await response.json();
+
+      // Clear cart after successful order
+      clearCartContext();
+      
+      // Redirect to order confirmation/details page
+      router.push(`/user/view-order/${order._id}`);
+
+    } catch (error) {
+      console.error('Error placing order:', error);
+      setError('Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle place order based on payment method
+  const handlePlaceOrder = async () => {
+    if (formData.paymentMethod === 'upi') {
+      await initializeRazorpayUPI();
+    } else {
+      await createOrder();
+    }
+  };
 
   // Update quantity
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity < 1) return;
-
-    setCartItems(cartItems.map(item =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
-  };
-
-  // Remove item from cart
-  const removeItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    
+    const item = cart.find(item => (item._id || item.id) === id);
+    if (item) {
+      // Remove and re-add with new quantity
+      removeItemFromCart(item);
+      if (newQuantity > 0) {
+        addItemToCart({...item, quantity: newQuantity - 1}); // subtracting 1 because addItemToCart will add 1
+      }
+    }
   };
 
   // Save item for later
   const saveForLater = (id) => {
-    const itemToSave = cartItems.find(item => item.id === id);
+    const itemToSave = cart.find(item => (item._id || item.id) === id);
     if (itemToSave) {
       setSavedItems([...savedItems, itemToSave]);
-      removeItem(id);
+      removeItemFromCart(itemToSave);
     }
   };
 
   // Move item from saved to cart
   const moveToCart = (id) => {
-    const itemToMove = savedItems.find(item => item.id === id);
+    const itemToMove = savedItems.find(item => (item._id || item.id) === id);
     if (itemToMove) {
-      setCartItems([...cartItems, { ...itemToMove, quantity: 1 }]);
-      setSavedItems(savedItems.filter(item => item.id !== id));
+      addItemToCart(itemToMove);
+      setSavedItems(savedItems.filter(item => (item._id || item.id) !== id));
     }
   };
-
+  
+  // Clear entire cart
+  const clearCart = () => {
+    if (window.confirm('Are you sure you want to clear your cart?')) {
+      clearCartContext();
+      setPromoApplied(false);
+      setPromoCode("");
+    }
+  };
+  
   // Apply promo code
   const applyPromoCode = () => {
     if (promoCode.toLowerCase() === "save10") {
-      setDiscount(subtotal * 0.1);
       setPromoApplied(true);
     } else {
       alert("Invalid promo code");
     }
   };
 
-  // Add recommended product to cart
-  const addToCart = (product) => {
-    const existingItem = cartItems.find(item => item.id === product.id);
-
-    if (existingItem) {
-      updateQuantity(product.id, existingItem.quantity + 1);
-    } else {
-      setCartItems([...cartItems, { ...product, quantity: 1 }]);
-    }
-  };
-
-  // Clear entire cart
-  const clearCart = () => {
-    setCartItems([]);
-    setDiscount(0);
-    setPromoApplied(false);
-    setPromoCode("");
-  };
+  // Show UPI Info
+  const showUpiInfo = formData.paymentMethod === 'upi';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Main content */}
-      <main className="container mx-auto py-8 px-4">
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <CartIcon size={32} className="text-pink-500" />
-            <h1 className="text-3xl font-bold">Nest&<span className="text-pink-500">Needle</span> Cart</h1>
-          </div>
+    <div className="min-h-screen bg-gray-100">
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
+      {/* ... Rest of your component render... */}
+      
+      <main className="container mx-auto px-4 py-8">
+        {/* Cart header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Your Shopping Cart</h1>
+          <p className="text-gray-600 mt-2">{cart.length} {cart.length === 1 ? 'item' : 'items'} in your cart</p>
         </div>
-
+        
         {/* Cart content */}
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Cart items */}
-          <div className="lg:w-2/3">
-            {cartItems.length === 0 ? (
-              <div className="bg-white p-8 rounded-lg shadow text-center">
-                <ShoppingBag size={64} className="text-pink-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">Your craft cart is empty</h2>
-                <p className="text-gray-600 mb-4">Time to stock up on DIY supplies for your next project!</p>
-                <button className="bg-pink-500 text-white py-2 px-6 rounded-full hover:bg-pink-600 transition">
-                  Browse DIY Supplies
-                </button>
+          <div className="lg:w-2/3 space-y-6">
+            {/* Cart empty state */}
+            {cart.length === 0 && (
+              <div className="bg-white rounded-lg shadow p-10 text-center">
+                <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShoppingCart className="text-pink-500 w-10 h-10" />
+                </div>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+                <p className="text-gray-600 mb-6">Looks like you haven't added any items to your cart yet.</p>
+                <Link href="/user">
+                  <button className="bg-pink-500 text-white px-6 py-3 rounded-full hover:bg-pink-600 font-medium">
+                    Start Shopping
+                  </button>
+                </Link>
               </div>
-            ) : (
+            )}
+
+            {/* Cart items */}
+            {cart.length > 0 && (
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">Cart Items ({cartItems.length})</h2>
-                    {cartItems.length > 0 && (
-                      <button
-                        onClick={clearCart}
-                        className="text-sm flex items-center gap-1 text-red-500 hover:text-red-600 transition"
-                      >
-                        <Trash2 size={16} />
-                        Clear Cart
-                      </button>
-                    )}
+                    <h2 className="text-xl font-semibold">Shopping Cart</h2>
+                    <button 
+                      onClick={clearCart}
+                      className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1"
+                    >
+                      <Trash2 size={16} />
+                      Clear Cart
+                    </button>
                   </div>
                 </div>
 
                 {/* Cart items list */}
-                <ul>
-                  {cartItems.map(item => (
-                    <li key={item.id} className="border-b border-gray-200 p-6">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={item.image}
+                <div className="divide-y divide-gray-200">
+                  {cart.map((item) => (
+                    <div key={item._id || item.id} className="p-6 flex flex-col sm:flex-row gap-4">
+                      {/* Product image */}
+                      <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-md overflow-hidden">
+                        <img 
+                          src={item.image || 'https://placehold.co/200x200?text=DIY+Kit'} 
                           alt={item.name}
-                          className="w-24 h-24 object-cover rounded-md"
+                          className="w-full h-full object-cover"
                         />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg">{item.name}</h3>
-                          <p className="text-gray-500 mb-2">Category: {item.category}</p>
-                          <div className="flex items-center gap-4 mt-2">
-                            <button
-                              onClick={() => saveForLater(item.id)}
-                              className="text-sm flex items-center gap-1 text-pink-500 hover:text-pink-600 transition"
+                      </div>
+                      
+                      {/* Product details */}
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
+                            <p className="text-gray-500 text-sm">Category: {item.category || 'DIY Kit'}</p>
+                          </div>
+                          <div className="text-lg font-bold text-gray-900">
+                            ${item.price.toFixed(2)}
+                          </div>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex flex-wrap items-center justify-between mt-4 gap-2">
+                          {/* Quantity */}
+                          <div className="flex items-center border border-gray-300 rounded-md">
+                            <button 
+                              onClick={() => updateQuantity((item._id || item.id), (item.quantity || 1) - 1)}
+                              className="px-3 py-1 hover:bg-gray-100"
+                              disabled={(item.quantity || 1) <= 1}
+                            >
+                              -
+                            </button>
+                            <span className="px-3 py-1">{item.quantity || 1}</span>
+                            <button 
+                              onClick={() => updateQuantity((item._id || item.id), (item.quantity || 1) + 1)}
+                              className="px-3 py-1 hover:bg-gray-100"
+                            >
+                              +
+                            </button>
+                          </div>
+                          
+                          {/* Action buttons */}
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => saveForLater(item._id || item.id)}
+                              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
                             >
                               <Heart size={16} />
                               Save for later
                             </button>
-                            <button
-                              onClick={() => removeItem(item.id)}
-                              className="text-sm flex items-center gap-1 text-gray-500 hover:text-gray-600 transition"
+                            <button 
+                              onClick={() => removeItemFromCart(item)}
+                              className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
                             >
                               <Trash2 size={16} />
                               Remove
                             </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-500"
-                          >
-                            -
-                          </button>
-                          <span className="w-8 text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-500"
-                          >
-                            +
-                          </button>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
-                          <p className="text-sm text-gray-500">${item.price.toFixed(2)} each</p>
-                        </div>
                       </div>
-                    </li>
+                    </div>
                   ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Saved items */}
-            {savedItems.length > 0 && (
-              <div className="bg-white rounded-lg shadow mt-8">
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold">Saved for Later ({savedItems.length})</h2>
                 </div>
-                <ul>
-                  {savedItems.map(item => (
-                    <li key={item.id} className="border-b border-gray-200 last:border-b-0 p-6">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-md"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{item.name}</h3>
-                          <p className="text-pink-500 font-semibold">${item.price.toFixed(2)}</p>
-                        </div>
-                        <button
-                          onClick={() => moveToCart(item.id)}
-                          className="bg-pink-500 text-white py-2 px-4 rounded-full hover:bg-pink-600 transition"
-                        >
-                          Move to Cart
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
               </div>
             )}
 
-            {/* Recommended products */}
-            <div className="mt-8 bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Complete Your Project</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {recommendedProducts.map(product => (
-                  <div key={product.id} className="border border-gray-200 rounded-lg p-4 text-center">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-1/2 object-cover mx-auto mb-2"
-                    />
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <p className="text-pink-500 font-semibold mb-2">${product.price.toFixed(2)}</p>
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="w-full bg-black text-white py-1 px-3 rounded hover:bg-gray-800 transition text-sm"
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                ))}
+            {/* Saved for later items */}
+            {savedItems.length > 0 && (
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold">Saved for later ({savedItems.length})</h2>
+                </div>
+                
+                <div className="divide-y divide-gray-200">
+                  {savedItems.map((item) => (
+                    <div key={item._id || item.id} className="p-6 flex gap-4">
+                      {/* Product image */}
+                      <div className="w-32 h-32 bg-gray-100 rounded-md overflow-hidden">
+                        <img 
+                          src={item.image || 'https://placehold.co/200x200?text=DIY+Kit'} 
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      {/* Product details */}
+                      <div className="flex-1">
+                        <div className="flex justify-between gap-2">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
+                            <p className="text-gray-500 text-sm">Category: {item.category || 'DIY Kit'}</p>
+                          </div>
+                          <div className="text-lg font-bold text-gray-900">
+                            ${item.price.toFixed(2)}
+                          </div>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex items-center mt-4 gap-3">
+                          <button 
+                            onClick={() => moveToCart(item._id || item.id)}
+                            className="text-sm text-pink-500 hover:text-pink-700 flex items-center gap-1"
+                          >
+                            <ShoppingBag size={16} />
+                            Move to Cart
+                          </button>
+                          <button 
+                            onClick={() => setSavedItems(savedItems.filter(i => (i._id || i.id) !== (item._id || item.id)))}
+                            className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
+                          >
+                            <Trash2 size={16} />
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Order summary */}
+          {/* Checkout section */}
           <div className="lg:w-1/3">
-            <div className="bg-white rounded-lg shadow sticky top-4">
+            <div className="bg-white rounded-lg shadow mb-6">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold">Checkout Details</h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter your name"
+                    />
+                    {formErrors.name && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter your email"
+                    />
+                    {formErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
+                    <textarea
+                      name="shippingAddress"
+                      value={formData.shippingAddress}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter your shipping address"
+                      rows={3}
+                    />
+                    {formErrors.shippingAddress && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.shippingAddress}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                    <select
+                      name="paymentMethod"
+                      value={formData.paymentMethod}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    >
+                      <option value="cod">Cash on Delivery</option>
+                      <option value="card">Card Payment</option>
+                      <option value="upi">UPI (Razorpay)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Show UPI info section when UPI is selected */}
+            {showUpiInfo && (
+              <div className="p-4 mt-4 bg-blue-50 rounded-md border border-blue-100">
+                <h3 className="font-semibold text-blue-700 mb-2 flex items-center">
+                  <span className="mr-2">📱</span>UPI Payment Information
+                </h3>
+                <ul className="text-sm text-blue-600 space-y-2 pl-6 list-disc">
+                  <li>You will be redirected to Razorpay UPI payment gateway</li>
+                  <li>You can pay using any UPI app (Google Pay, PhonePe, BHIM, Paytm, etc.)</li>
+                  <li>Payment is secure and processed instantly</li>
+                  <li>Your order will be confirmed after successful payment</li>
+                </ul>
+              </div>
+            )}
+
+            {/* Order summary */}
+            <div className="bg-white rounded-lg shadow sticky top-6">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-xl font-semibold">Order Summary</h2>
               </div>
@@ -347,96 +565,88 @@ export default function ShoppingCart() {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">${subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="font-semibold">
-                      {shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}
-                    </span>
-                  </div>
+                  
+                  {/* Promo discount */}
                   {promoApplied && (
-                    <div className="flex justify-between text-pink-500">
-                      <span>Discount (10%)</span>
+                    <div className="flex justify-between text-green-600">
+                      <span className="flex items-center gap-1">
+                        <Gift size={16} />
+                        Promo Discount
+                      </span>
                       <span>-${discount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="border-t border-gray-200 pt-4 mt-4">
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Shipping</span>
+                    <span className="font-medium">Free</span>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex justify-between">
+                      <span className="text-lg font-semibold">Total</span>
+                      <span className="text-lg font-bold">${total.toFixed(2)}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Tax calculated at checkout</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Including all taxes and fees
+                    </p>
                   </div>
                 </div>
-
+                
                 {/* Promo code */}
                 <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Promo Code
-                  </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      placeholder="Enter promo code"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      placeholder="Enter code"
-                      className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                       disabled={promoApplied}
                     />
                     <button
                       onClick={applyPromoCode}
+                      className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 disabled:bg-gray-300"
                       disabled={promoApplied || !promoCode}
-                      className={`px-4 py-2 rounded-full transition ${promoApplied
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-black text-white hover:bg-gray-800"
-                        }`}
                     >
                       Apply
                     </button>
                   </div>
-                  {promoApplied && (
-                    <div className="flex items-center gap-2 text-green-500 mt-2 text-sm">
-                      <Gift size={16} />
-                      <span>Promo code applied successfully!</span>
-                      <button
-                        onClick={() => {
-                          setPromoApplied(false);
-                          setPromoCode("");
-                          setDiscount(0);
-                        }}
-                        className="ml-auto text-gray-500 hover:text-gray-700"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  )}
                 </div>
 
-                {/* Checkout button */}
+                {/* Error Message */}
+                {error && (
+                  <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* Place Order Button */}
                 <button
-                  disabled={cartItems.length === 0}
-                  className={`w-full mt-6 py-3 px-4 rounded-full flex items-center justify-center gap-2 text-white font-semibold transition ${cartItems.length === 0
+                  onClick={handlePlaceOrder}
+                  disabled={loading || cart.length === 0}
+                  className={`w-full mt-6 py-3 px-4 rounded-full flex items-center justify-center gap-2 text-white font-semibold transition ${
+                    cart.length === 0
                       ? "bg-gray-300 cursor-not-allowed"
                       : "bg-pink-500 hover:bg-pink-600"
-                    }`}
+                  }`}
                 >
-                  Proceed to Checkout
-                  <ChevronRight size={20} />
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span>{formData.paymentMethod === 'upi' ? 'Proceed to Pay' : 'Place Order'}</span>
+                      <ChevronRight size={20} />
+                    </div>
+                  )}
                 </button>
 
-                {/* Payment methods */}
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-500 mb-2">We accept</p>
-                  <div className="flex justify-center gap-2">
-                    <div className="w-10 h-6 bg-gray-200 rounded"></div>
-                    <div className="w-10 h-6 bg-gray-200 rounded"></div>
-                    <div className="w-10 h-6 bg-gray-200 rounded"></div>
-                    <div className="w-10 h-6 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
-
-                {/* Additional info */}
+                {/* Additional Info */}
                 <div className="mt-6 space-y-4 text-sm">
                   <div className="flex items-center gap-2 text-gray-600">
                     <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">?</span>
@@ -449,7 +659,8 @@ export default function ShoppingCart() {
               </div>
             </div>
           </div>
-        </div>      </main>
+        </div>
+      </main>
     </div>
   );
 }

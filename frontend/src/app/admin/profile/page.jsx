@@ -9,7 +9,7 @@ export default function AdminProfile() {
   const user = {
     name: "Shipra Singh",
     role: "Admin / DIY Creator",
-    avatar: "/public/images/shipra.jpg",
+    avatar: "/nest&needle.jpg",
     bio: "Passionate about upcycling and sustainable DIY projects. I love transforming old furniture and creating home decor with minimal environmental impact.",
     stats: {
       followers: 8529,

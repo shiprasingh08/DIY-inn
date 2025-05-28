@@ -2,7 +2,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import { useCartContext } from '../../context/CartContext';
+import { useCart } from '../../context/CartContext';
 import { Search } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/app/components/navbar/Navbar';
@@ -17,7 +17,7 @@ const BrowseKitsContent = () => {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'All');
-  const { addItemToCart, isInCart, removeItemFromCart } = useCartContext();
+  const { addItemToCart, isInCart, removeItemFromCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {

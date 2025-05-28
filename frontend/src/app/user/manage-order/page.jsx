@@ -1,316 +1,312 @@
 'use client';
-import { useState } from 'react';
-import { Search, Filter, ChevronDown, ChevronUp, Package, ShoppingBag, Truck, CheckCircle, AlertCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { Search, Filter, ChevronDown, ChevronUp, Edit, Trash2, Eye, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react';
+import Link from 'next/link';
 
-export default function OrderManagement() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState('all');
+export default function UserOrderManagement() {
+  const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [expandedOrder, setExpandedOrder] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTab, setSelectedTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample order data
-  const orders = [
-    {
-      id: 'ORD-7856',
-      date: '2025-05-10',
-      status: 'delivered',
-      items: [
-        { name: 'DIY Macramé Wall Hanging Kit', price: 29.99, quantity: 1 },
-        { name: 'Ceramic Painting Set', price: 34.50, quantity: 2 }
-      ],
-      total: 98.99,
-      address: '123 Craft St, DIY City, DC 12345',
-      trackingNumber: 'TRK12345678'
-    },
-    {
-      id: 'ORD-7832',
-      date: '2025-05-08', 
-      status: 'processing',
-      items: [
-        { name: 'Wooden Birdhouse Kit', price: 24.99, quantity: 1 }
-      ],
-      total: 24.99,
-      address: '456 Maker Ave, DIY City, DC 12345'
-    },
-    {
-      id: 'ORD-7814',
-      date: '2025-05-05',
-      status: 'shipped',
-      items: [
-        { name: 'Candle Making Supplies', price: 42.75, quantity: 1 },
-        { name: 'Essential Oils Set', price: 18.99, quantity: 1 }
-      ],
-      total: 61.74,
-      address: '789 Creator Blvd, DIY City, DC 12345',
-      trackingNumber: 'TRK98765432'
-    },
-    {
-      id: 'ORD-7798',
-      date: '2025-05-02',
-      status: 'cancelled',
-      items: [
-        { name: 'Knitting Starter Kit', price: 35.50, quantity: 1 }
-      ],
-      total: 35.50,
-      address: '321 Hobby Ln, DIY City, DC 12345'
+  // Format date for display - handle various date formats and fallbacks
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date) 
+        ? date.toLocaleDateString() 
+        : 'N/A';
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/getall`);
+      const data = await res.json();
+      setOrders(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setLoading(false);
     }
-  ];
+  };
 
-  // Filter orders based on active tab and search query
+  // Filter orders based on selected tab and search term
   const filteredOrders = orders.filter(order => {
-    const matchesTab = activeTab === 'all' || order.status === activeTab;
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = searchQuery === '' || 
-      order.id.toLowerCase().includes(searchLower) ||
-      order.items.some(item => item.name.toLowerCase().includes(searchLower));
+    const matchesTab = selectedTab === 'all' || order.status === selectedTab;
+    const matchesSearch = 
+      order._id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesTab && matchesSearch;
   });
 
-  // Sort orders based on date
+  // Sort orders based on sort field and direction
   const sortedOrders = [...filteredOrders].sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return sortDirection === 'desc' ? dateB - dateA : dateA - dateB;
+    let comparison = 0;
+    if (sortField === 'date') {
+      comparison = new Date(b.createdAt) - new Date(a.createdAt);
+    } else if (sortField === 'total') {
+      comparison = parseFloat(a.total) - parseFloat(b.total);
+    } else if (sortField === 'customer') {
+      comparison = a.customerName.localeCompare(b.customerName);
+    } else if (sortField === 'id') {
+      comparison = a._id.localeCompare(b._id);
+    }
+    return sortDirection === 'asc' ? comparison : -comparison;
   });
 
-  // Toggle sort direction
-  const toggleSortDirection = () => {
-    setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
-  };
-
-  // Handle order expansion
-  const toggleOrderExpansion = (orderId) => {
-    if (expandedOrder === orderId) {
-      setExpandedOrder(null);
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      setExpandedOrder(orderId);
+      setSortField(field);
+      setSortDirection('desc');
     }
   };
 
-  // Get status badge color and icon
-  const getStatusDetails = (status) => {
-    switch (status) {
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
       case 'processing':
-        return { 
-          color: 'bg-pink-100 text-pink-700',
-          icon: <Package size={16} className="text-pink-700" />
-        };
-      case 'shipped':
-        return { 
-          color: 'bg-blue-100 text-blue-700',
-          icon: <Truck size={16} className="text-blue-700" />
-        };
-      case 'delivered':
-        return { 
-          color: 'bg-green-100 text-green-700',
-          icon: <CheckCircle size={16} className="text-green-700" />
-        };
+        return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
-        return { 
-          color: 'bg-gray-100 text-gray-700',
-          icon: <AlertCircle size={16} className="text-gray-700" />
-        };
+        return 'bg-red-100 text-red-800';
       default:
-        return { 
-          color: 'bg-gray-100 text-gray-700',
-          icon: <ShoppingBag size={16} className="text-gray-700" />
-        };
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  // Format date to readable format
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const getStatusIcon = (status) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'processing':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'cancelled':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      default:
+        return null;
+    }
   };
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
-      <div className="w-full py-8 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-pink-500">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-            <p className="text-gray-600 mt-2">Manage and track your DIY project orders</p>
+    <div className="min-h-screen bg-gray-100">
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {/* Page Header */}
+          <div className="px-6 py-5 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-800">My Orders</h2>
+            <p className="mt-1 text-sm text-gray-500">View and track your orders</p>
           </div>
 
-          {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={18} className="text-gray-400" />
-              </div>              <input
-                type="text"
-                placeholder="Search orders by ID or item name..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-4">
-              <button 
-                onClick={toggleSortDirection}
-                className="flex items-center gap-1 px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500"
-              >
-                Sort by Date
-                {sortDirection === 'desc' ? 
-                  <ChevronDown size={16} /> : 
-                  <ChevronUp size={16} />
-                }
-              </button>
-              <div className="relative">
-                <button className="flex items-center gap-1 px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500">
-                  <Filter size={16} />
-                  Filter
+          {/* Filters and Search */}
+          <div className="p-6 bg-white border-b border-gray-200">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center space-x-1">
+                <button 
+                  onClick={() => setSelectedTab('all')} 
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    selectedTab === 'all' 
+                      ? 'bg-pink-100 text-pink-700' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  All Orders
+                </button>
+                <button 
+                  onClick={() => setSelectedTab('processing')} 
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    selectedTab === 'processing' 
+                      ? 'bg-pink-100 text-pink-700' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Processing
+                </button>
+                <button 
+                  onClick={() => setSelectedTab('completed')} 
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    selectedTab === 'completed' 
+                      ? 'bg-pink-100 text-pink-700' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Completed
+                </button>
+                <button 
+                  onClick={() => setSelectedTab('cancelled')} 
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    selectedTab === 'cancelled' 
+                      ? 'bg-pink-100 text-pink-700' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Cancelled
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search orders..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block w-full pl-10 p-2.5"
+                  />
+                </div>
+                <button className="bg-gray-100 p-2.5 rounded-lg text-gray-600 hover:bg-gray-200">
+                  <Filter className="h-4 w-4" />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="border-b border-gray-200 mb-6">
-            <nav className="flex space-x-8" aria-label="Order Tabs">
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'all'
-                    ? 'border-pink-500 text-pink-500'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                All Orders
-              </button>
-              <button
-                onClick={() => setActiveTab('processing')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'processing'
-                    ? 'border-pink-500 text-pink-500'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Processing
-              </button>
-              <button
-                onClick={() => setActiveTab('shipped')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'shipped'
-                    ? 'border-pink-500 text-pink-500'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Shipped
-              </button>
-              <button
-                onClick={() => setActiveTab('delivered')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'delivered'
-                    ? 'border-pink-500 text-pink-500'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Delivered
-              </button>
-              <button
-                onClick={() => setActiveTab('cancelled')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'cancelled'
-                    ? 'border-pink-500 text-pink-500'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Cancelled
-              </button>
-            </nav>
-          </div>
-
-          {/* Order List */}
-          <div className="space-y-4">
-            {sortedOrders.length > 0 ? (
-              sortedOrders.map((order) => (
-                <div key={order.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  {/* Order Header */}
-                  <div 
-                    className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 cursor-pointer"
-                    onClick={() => toggleOrderExpansion(order.id)}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      <div>
-                        <span className="font-bold text-black">{order.id}</span>
-                        <span className="text-gray-500 text-sm ml-2">
-                          {formatDate(order.date)}
-                        </span>
-                      </div>
-                      <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusDetails(order.status).color}`}>
-                        {getStatusDetails(order.status).icon}
-                        <span className="ml-1 capitalize">{order.status}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-4 md:mt-0">
-                      <span className="font-bold text-black">${order.total.toFixed(2)}</span>
-                      <button className="ml-4 text-pink-500 focus:outline-none">
-                        {expandedOrder === order.id ? 
-                          <ChevronUp size={20} /> : 
-                          <ChevronDown size={20} />
-                        }
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Order Details (Expanded) */}
-                  {expandedOrder === order.id && (
-                    <div className="p-4 border-t border-gray-200 bg-white">
-                      <h4 className="font-medium text-gray-900 mb-2">Order Items</h4>
-                      <ul className="divide-y divide-gray-200">
-                        {order.items.map((item, index) => (
-                          <li key={index} className="py-3 flex justify-between">
-                            <div>
-                              <p className="text-gray-900">{item.name}</p>
-                              <p className="text-gray-500 text-sm">Qty: {item.quantity}</p>
-                            </div>
-                            <p className="font-medium text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <h4 className="font-medium text-gray-900 mb-2">Shipping Details</h4>
-                        <p className="text-gray-600">{order.address}</p>
-                        {order.trackingNumber && (
-                          <div className="mt-2">
-                            <span className="text-gray-600">Tracking: </span>
-                            <span className="text-pink-500 font-medium">{order.trackingNumber}</span>
-                          </div>
+          {/* Orders Table */}
+          <div className="overflow-x-auto">
+            {orders.length === 0 ? (
+              <div className="text-center py-12">
+                <h3 className="text-lg font-medium text-gray-900">No orders found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  You haven't placed any orders yet.
+                </p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('id')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Order ID</span>
+                        {sortField === 'id' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
                         )}
                       </div>
-                      
-                      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end gap-2">
-                        {order.status === 'processing' && (
-                          <button className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2">
-                            Cancel Order
-                          </button>
-                        )}                        <button 
-                          onClick={() => router.push(`/user/view-order/${order.id}`)}
-                          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
-                        >
-                          View Details
-                        </button>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('customer')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Customer</span>
+                        {sortField === 'customer' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <ShoppingBag size={48} className="mx-auto text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
-                <p className="mt-1 text-sm text-gray-500">Try changing your filters or search criteria.</p>
-              </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('date')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Date</span>
+                        {sortField === 'date' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Items
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort('total')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Total</span>
+                        {sortField === 'total' && (
+                          sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortedOrders.map((order) => (
+                    <tr key={order._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-pink-600">#{order._id.slice(-6).toUpperCase()}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{order.customerName}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {formatDate(order.createdAt)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{order.quantity}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          ${typeof order.total === 'number' ? order.total.toFixed(2) : '0.00'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                          <span className="mr-1">{getStatusIcon(order.status)}</span>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Link 
+                            href={`/user/view-order/${order._id}`}
+                            className="text-gray-400 hover:text-gray-500"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
+
+          {/* Pagination */}
+          {orders.length > 0 && (
+            <div className="bg-white px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedOrders.length}</span> of{" "}
+                    <span className="font-medium">{orders.length}</span> results
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

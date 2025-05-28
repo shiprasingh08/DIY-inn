@@ -6,6 +6,7 @@ const ReviewRouter = require('./routers/reviewRouter')
 
 const cors = require('cors');
 const orderRouter = require('./routers/orderRouter');
+const razorpayRouter = require('./routers/razorpayRouter');
 
 //initializing express
 const app = express();
@@ -20,6 +21,7 @@ app.use('/user', UserRouter);
 app.use('/kit', KitRouter);
 app.use('/order', orderRouter);
 app.use('/review', ReviewRouter);
+app.use('/payment', razorpayRouter);
 
 //route or endpoint
 app.get('/', (req, res) => {

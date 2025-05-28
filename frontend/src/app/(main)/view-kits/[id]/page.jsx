@@ -1,9 +1,9 @@
 'use client';
-import { useCartContext } from '@/app/context/CartContext';
+import { useCart } from '@/app/context/CartContext';
 import { useWishListContext } from '@/app/context/WishListContext';
 import { IconHeart, IconHeartFilled, IconStarFilled, IconStar, IconShoppingCart, IconUser, IconCalendar } from '@tabler/icons-react';
 import axios from 'axios';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import StarRatings from 'react-star-ratings';
@@ -17,7 +17,9 @@ function ViewKitPage() {
   const [reviewList, setReviewList] = useState([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
-  const { addItemToCart: addToCart, isInCart: checkItemInCart, removeItemFromCart: removeFromCart } = useCartContext();
+  const [user, setUser] = useState(null);
+  const { addItemToCart: addToCart, isInCart: checkItemInCart, removeItemFromCart: removeFromCart } = useCart();
+  const router = useRouter();
 
   const commentRef = useRef();
   const { id } = useParams();
@@ -58,6 +60,23 @@ function ViewKitPage() {
     }
   }, [id, fetchReview]);
 
+  // Check if user is logged in
+  useEffect(() => {
+    if (!ISSERVER) {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+          setUser(null);
+        }
+      }
+    }
+  }, []);
+
   const totalRatings = reviewList.length;
 
   const getAverageRating = () => {
@@ -76,6 +95,12 @@ function ViewKitPage() {
   };
 
   const sendReview = async () => {
+    if (!user) {
+      toast.error('Please log in to submit a review');
+      router.push('/login');
+      return;
+    }
+
     if (!rating) {
       toast.error('Please select a rating');
       return;
@@ -90,11 +115,13 @@ function ViewKitPage() {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/review/add`, {
         product: id,
+        user: user._id, // Add user ID from local storage
         images: [],
         comment: commentRef.current.value.trim(),
         rating: rating
       }, {
         headers: {
+          'Content-Type': 'application/json',
           'x-auth-token': !ISSERVER ? localStorage.getItem('token') : null
         }
       });

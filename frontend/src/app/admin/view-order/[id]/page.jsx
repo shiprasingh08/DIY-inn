@@ -1,13 +1,16 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { ChevronLeft, Save, Edit, Trash, Image, Eye, Star, CheckCircle, XCircle } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function AdminViewPage() {
     const params = useParams();
+    const router = useRouter();
     const [order, setOrder] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [editForm, setEditForm] = useState({
         customerName: '',
         email: '',
@@ -19,12 +22,25 @@ export default function AdminViewPage() {
         status: ''
     });
 
+    // Format date for display - handle various date formats and fallbacks
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date) 
+            ? date.toLocaleDateString() 
+            : 'N/A';
+    };
+
     // Fetch order data on component mount
     useEffect(() => {
         const fetchOrder = async () => {
+            setError(null);
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/getbyid/${params.id}`);
-                if (!res.ok) throw new Error('Failed to fetch order');
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.message || 'Failed to fetch order');
+                }
                 const data = await res.json();
                 setOrder(data);
                 setEditForm({
@@ -37,9 +53,10 @@ export default function AdminViewPage() {
                     billingAddress: data.billingAddress,
                     status: data.status
                 });
-                setLoading(false);
             } catch (error) {
-                console.error('Error fetching order:', error);
+                setError(error.message);
+                toast.error(error.message);
+            } finally {
                 setLoading(false);
             }
         };
@@ -71,12 +88,17 @@ export default function AdminViewPage() {
                 body: JSON.stringify(editForm)
             });
             
-            if (!res.ok) throw new Error('Failed to update order');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to update order');
+            }
             const updatedOrder = await res.json();
             setOrder(updatedOrder);
             setIsEditing(false);
+            toast.success('Order updated successfully');
         } catch (error) {
             console.error('Error updating order:', error);
+            toast.error(error.message);
         }
     };
 
@@ -88,20 +110,39 @@ export default function AdminViewPage() {
                 method: 'DELETE'
             });
             
-            if (!res.ok) throw new Error('Failed to delete order');
-            // Redirect to orders list after successful deletion
-            window.location.href = '/admin/manage-order';
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to delete order');
+            }
+            toast.success('Order deleted successfully');
+            router.push('/admin/manage-order');
         } catch (error) {
             console.error('Error deleting order:', error);
+            toast.error(error.message);
         }
     };
 
     if (loading) {
-        return <div className="p-8">Loading...</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+            </div>
+        );
     }
 
-    if (!order) {
-        return <div className="p-8">Order not found</div>;
+    if (error) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+                <div className="text-red-500 text-xl">{error}</div>
+                <button
+                    onClick={() => router.push('/admin/manage-order')}
+                    className="flex items-center gap-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                >
+                    <ChevronLeft className="w-5 h-5" />
+                    Back to Orders
+                </button>
+            </div>
+        );
     }
 
     return (
@@ -137,6 +178,10 @@ export default function AdminViewPage() {
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Order Date</label>
+                                <p className="mt-1">{formatDate(order.createdAt || order.orderDate)}</p>
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Customer Name</label>
                                 {isEditing ? (

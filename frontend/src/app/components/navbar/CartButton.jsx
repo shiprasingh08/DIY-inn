@@ -1,10 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
-import { useCartContext } from '../../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 export const CartButton = () => {
-  const { cart } = useCartContext();
+  const { cart } = useCart();
   const count = cart.reduce((total, item) => total + (item.quantity || 1), 0);
 
   return (

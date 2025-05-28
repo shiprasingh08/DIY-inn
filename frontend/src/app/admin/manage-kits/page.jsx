@@ -8,11 +8,12 @@ const ManageKits = () => {
   const [kits, setKits] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentKit, setCurrentKit] = useState({
-    name: "",
+    title: "",
     description: "",
     price: "",
     category: "",
-    stockQuantity: "",
+    image: "",
+    videourl: "",
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -23,7 +24,6 @@ const ManageKits = () => {
   const fetchKits = async () => {
     try {
       const response = await axios.get("http://localhost:5000/kit/getall");
-      console.log(response.data);
       setKits(response.data);
     } catch (error) {
       console.error("Error fetching kits:", error);
@@ -40,7 +40,9 @@ const ManageKits = () => {
 
   const handleSubmit = async () => {
     try {
-      const url = isEditing ? `/api/kits/${currentKit._id}` : "/api/kits";
+      const url = isEditing
+        ? `http://localhost:5000/kit/update/${currentKit._id}`
+        : `http://localhost:5000/kit/add`;
       const method = isEditing ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -52,24 +54,27 @@ const ManageKits = () => {
       });
 
       if (response.ok) {
+        toast.success(`Kit ${isEditing ? "updated" : "added"} successfully`);
         fetchKits();
         handleCloseDialog();
+      } else {
+        toast.error("Failed to save kit");
       }
     } catch (error) {
       console.error("Error saving kit:", error);
+      toast.error("Error occurred while saving");
     }
   };
 
   const handleDelete = async (kitId) => {
-    try{
-      await axios.delete(`http://localhost:5000/kit/delete/${kitId}`)
+    try {
+      await axios.delete(`http://localhost:5000/kit/delete/${kitId}`);
       toast.success("Kit deleted successfully");
       fetchKits();
-    }catch(error){
+    } catch (error) {
       console.error("Error deleting kit:", error);
       toast.error("Failed to delete kit");
     }
-    
   };
 
   const handleEdit = (kit) => {
@@ -80,11 +85,12 @@ const ManageKits = () => {
 
   const handleOpenDialog = () => {
     setCurrentKit({
-      name: "",
+      title: "",
       description: "",
       price: "",
       category: "",
-      stockQuantity: "",
+      image: "",
+      videourl: "",
     });
     setIsEditing(false);
     setOpenDialog(true);
@@ -93,11 +99,12 @@ const ManageKits = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setCurrentKit({
-      name: "",
+      title: "",
       description: "",
       price: "",
       category: "",
-      stockQuantity: "",
+      image: "",
+      videourl: "",
     });
     setIsEditing(false);
   };
@@ -121,10 +128,10 @@ const ManageKits = () => {
         {kits.map((kit) => (
           <div key={kit._id} className="bg-white border border-pink-100 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
             <div className="p-5">
-              <img src={kit.image} alt={kit.title} className="w-full h-48"/>
+              <img src={kit.image} alt={kit.title} className="w-full h-48 object-cover rounded-md" />
               <h2 className="text-xl font-semibold mb-2 text-pink-700">{kit.title}</h2>
               <p className="text-gray-600 mb-4 line-clamp-3">{kit.description}</p>
-              
+
               <div className="flex flex-col gap-1 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Price:</span>
@@ -134,7 +141,6 @@ const ManageKits = () => {
                   <span className="text-gray-500">Category:</span>
                   <span className="font-medium">{kit.category}</span>
                 </div>
-
               </div>
 
               <div className="flex gap-3 mt-4">
@@ -173,76 +179,39 @@ const ManageKits = () => {
                 <X size={24} />
               </button>
             </div>
-            
-            <div className="p-5">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={currentKit.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
-                  />
+
+            <div className="p-5 space-y-4">
+              {[
+                { label: "Title", name: "title", type: "text" },
+                { label: "Description", name: "description", type: "textarea" },
+                { label: "Price ($)", name: "price", type: "number" },
+                { label: "Category", name: "category", type: "text" },
+                { label: "Image URL", name: "image", type: "text" },
+                { label: "Video URL", name: "videourl", type: "text" },
+              ].map(({ label, name, type }) => (
+                <div key={name}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                  {type === "textarea" ? (
+                    <textarea
+                      name={name}
+                      value={currentKit[name]}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
+                    />
+                  ) : (
+                    <input
+                      type={type}
+                      name={name}
+                      value={currentKit[name]}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
+                    />
+                  )}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={currentKit.description}
-                    onChange={handleInputChange}
-                    rows="3"
-                    className="max-w-md px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
-                  ></textarea>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={currentKit.price}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={currentKit.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity
-                  </label>
-                  <input
-                    type="number"
-                    name="stockQuantity"
-                    value={currentKit.stockQuantity}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
-            
+
             <div className="border-t border-gray-100 p-5 flex justify-end gap-3">
               <button
                 onClick={handleCloseDialog}
@@ -261,7 +230,7 @@ const ManageKits = () => {
         </div>
       )}
 
-      {/* Empty state - shown when there are no kits */}
+      {/* Empty state */}
       {kits.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="bg-pink-50 p-6 rounded-full mb-4">
