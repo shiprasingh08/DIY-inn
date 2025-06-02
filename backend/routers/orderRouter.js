@@ -30,6 +30,19 @@ router.get('/getall', (req, res) => {
     });
 });
 
+// Get orders by user email
+router.get('/user/:email', (req, res) => {
+  OrderModel.find({ email: req.params.email })
+    .sort({ orderDate: -1 }) // Most recent first
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: 'Failed to fetch user orders' });
+    });
+});
+
 // Get order by ID
 router.get('/getbyid/:id', (req, res) => {
   OrderModel.findById(req.params.id)

@@ -3,14 +3,21 @@ require('dotenv').config();
 
 // Initialize Razorpay with your key ID and secret
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID ,
-  key_secret: process.env.RAZORPAY_KEY_SECRET ,
+  key_id: process.env.RAZORPAY_KEY_ID || 'your_key_id',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'your_key_secret',
 });
 
 // Create a new Razorpay order
 const createOrder = async (req, res) => {
     try {
       const { amount, currency = 'INR', receipt } = req.body;
+      
+      if (!amount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Amount is required'
+        });
+      }
       
       // Ensure amount is a number and convert to paise (multiply by 100)
       const amountInPaise = Math.round(parseFloat(amount) * 100);

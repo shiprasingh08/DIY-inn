@@ -19,7 +19,8 @@ export default function OrderPlaced() {
       }
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/order/getbyid/${orderId}`);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const res = await fetch(`${apiUrl}/order/getbyid/${orderId}`);
         if (!res.ok) throw new Error('Failed to fetch order details');
         const data = await res.json();
         setOrder(data);

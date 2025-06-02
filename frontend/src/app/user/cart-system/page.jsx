@@ -4,11 +4,11 @@ import { Trash2, Heart, ShoppingBag, Gift, ChevronRight, X, Hammer, ShoppingCart
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/app/context/CartContext';
-import Script from 'next/script';
 
 export default function ShoppingCart() {
   const router = useRouter();
   const { cart, addItemToCart, removeItemFromCart, clearCart: clearCartContext } = useCart();
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -33,6 +33,35 @@ export default function ShoppingCart() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
   const discount = promoApplied ? subtotal * 0.1 : 0; // 10% discount with promo code
   const total = subtotal - discount;
+
+  // Load Razorpay script
+  useEffect(() => {
+    // Check if script is already added to avoid duplicate loading
+    if (document.getElementById('razorpay-script')) {
+      setRazorpayLoaded(true);
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.id = 'razorpay-script';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('Razorpay script loaded successfully');
+      setRazorpayLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load Razorpay script');
+      setError('Payment system failed to load. Please refresh and try again.');
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -70,33 +99,49 @@ export default function ShoppingCart() {
       setLoading(true);
       setError('');
 
-      // Create Razorpay order from backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: total,
-          currency: 'INR',
-          receipt: `receipt_${Date.now()}`
-        })
-      });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-      if (!response.ok) {
-        throw new Error('Failed to create payment order');
-      }
+      // Create Razorpay order from backend with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const data = await response.json();
-      if (data.success) {
-        setRazorpayOrder(data.order);
-        openRazorpayCheckout(data.order);
-      } else {
-        throw new Error(data.message || 'Failed to create payment order');
+      try {
+        const response = await fetch(`${apiUrl}/payment/create-order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: total,
+            currency: 'INR',
+            receipt: `receipt_${Date.now()}`
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          setRazorpayOrder(data.order);
+          openRazorpayCheckout(data.order);
+        } else {
+          throw new Error(data.message || 'Failed to create payment order');
+        }
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your connection and try again.');
+        }
+        throw fetchError;
       }
     } catch (error) {
       console.error('Error initializing payment:', error);
-      setError('Failed to initialize payment. Please try again.');
+      setError(`Payment initialization failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -105,42 +150,58 @@ export default function ShoppingCart() {
   // Open Razorpay checkout
   const openRazorpayCheckout = async (order) => {
     try {
+      if (!razorpayLoaded || !window.Razorpay) {
+        setError('Payment system is not ready yet. Please wait a moment and try again.');
+        setLoading(false);
+        return;
+      }
+      
       // Get Razorpay key from API route
-      const keyResponse = await fetch('/api/razorpay');
-      const keyData = await keyResponse.json();
-      
-      const options = {
-        key: keyData.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: 'DIY Inn',
-        description: 'DIY Kits Purchase',
-        order_id: order.id,
-        handler: function (response) {
-          // Handle successful payment
-          verifyPayment(response);
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: '', // Add phone number field if needed
-        },
-        notes: {
-          address: formData.shippingAddress
-        },
-        theme: {
-          color: '#ec4899', // Pink-500 from Tailwind
-        },
-        modal: {
-          ondismiss: function() {
-            setLoading(false);
-            setError('Payment cancelled. Please try again.');
-          }
+      try {
+        const keyResponse = await fetch('/api/razorpay');
+        const keyData = await keyResponse.json();
+        
+        if (!keyData.keyId) {
+          throw new Error('Invalid Razorpay key');
         }
-      };
-      
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
+        
+        const options = {
+          key: keyData.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'DIY Inn',
+          description: 'DIY Kits Purchase',
+          order_id: order.id,
+          handler: function (response) {
+            // Handle successful payment
+            verifyPayment(response);
+          },
+          prefill: {
+            name: formData.name,
+            email: formData.email,
+            contact: '', // Add phone number field if needed
+          },
+          notes: {
+            address: formData.shippingAddress
+          },
+          theme: {
+            color: '#ec4899', // Pink-500 from Tailwind
+          },
+          modal: {
+            ondismiss: function() {
+              setLoading(false);
+              setError('Payment cancelled. Please try again.');
+            }
+          }
+        };
+        
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open();
+      } catch (apiError) {
+        console.error('Error fetching Razorpay key:', apiError);
+        setError('Failed to initialize payment. Please try again later.');
+        setLoading(false);
+      }
     } catch (error) {
       console.error('Error opening Razorpay:', error);
       setError('Failed to initialize payment interface. Please try again.');
@@ -153,29 +214,46 @@ export default function ShoppingCart() {
     try {
       setLoading(true);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/verify-payment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(paymentResponse)
-      });
-
-      if (!response.ok) {
-        throw new Error('Payment verification failed');
-      }
-
-      const data = await response.json();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       
-      if (data.success) {
-        // Create order after successful payment
-        await createOrder('upi');
-      } else {
-        throw new Error(data.message || 'Payment verification failed');
+      // Add timeout to prevent UI freeze
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        const response = await fetch(`${apiUrl}/payment/verify-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(paymentResponse),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Payment verification failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+          // Create order after successful payment
+          await createOrder('upi');
+        } else {
+          throw new Error(data.message || 'Payment verification failed');
+        }
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out during payment verification.');
+        }
+        throw fetchError;
       }
     } catch (error) {
       console.error('Error verifying payment:', error);
-      setError('Payment verification failed. Please contact support.');
+      setError(`Payment verification failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -186,6 +264,8 @@ export default function ShoppingCart() {
     try {
       setLoading(true);
       setError('');
+      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       
       // Prepare order data
       const orderData = {
@@ -207,29 +287,44 @@ export default function ShoppingCart() {
         orderDate: new Date().toISOString()
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create order');
-      }
-
-      const order = await response.json();
-
-      // Clear cart after successful order
-      clearCartContext();
+      // Add timeout to prevent UI freeze
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      // Redirect to order confirmation/details page
-      router.push(`/user/view-order/${order._id}`);
+      try {
+        const response = await fetch(`${apiUrl}/order/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderData),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Order creation failed: ${response.status}`);
+        }
+
+        const order = await response.json();
+
+        // Clear cart after successful order
+        clearCartContext();
+        
+        // Redirect to order placed page instead of view-order
+        router.push(`/user/orderplaced?orderId=${order._id}`);
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timed out during order creation.');
+        }
+        throw fetchError;
+      }
 
     } catch (error) {
       console.error('Error placing order:', error);
-      setError('Failed to place order. Please try again.');
+      setError(`Failed to place order: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -298,13 +393,7 @@ export default function ShoppingCart() {
   const showUpiInfo = formData.paymentMethod === 'upi';
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        strategy="lazyOnload"
-      />
-      {/* ... Rest of your component render... */}
-      
+    <div className="min-h-screen w-full bg-gray-100">
       <main className="container mx-auto px-4 py-8">
         {/* Cart header */}
         <div className="mb-8">
@@ -320,7 +409,7 @@ export default function ShoppingCart() {
             {cart.length === 0 && (
               <div className="bg-white rounded-lg shadow p-10 text-center">
                 <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <ShoppingCart className="text-pink-500 w-10 h-10" />
+                  <CartIcon className="text-pink-500 w-10 h-10" />
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
                 <p className="text-gray-600 mb-6">Looks like you haven't added any items to your cart yet.</p>

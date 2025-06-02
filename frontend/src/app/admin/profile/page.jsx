@@ -23,7 +23,7 @@ export default function AdminProfile() {
     {
       id: 1,
       title: "Vintage Chair Restoration",
-      image: "/api/placeholder/400/250",
+      image: "https://i.pinimg.com/736x/55/45/1a/55451aba2a40b2336eeecead439a6222.jpg",
       likes: 487,
       views: 2341,
       date: "Apr 23, 2025"
@@ -31,7 +31,7 @@ export default function AdminProfile() {
     {
       id: 2,
       title: "Mason Jar Lamp DIY",
-      image: "/api/placeholder/400/250",
+      image: "https://i.pinimg.com/736x/48/df/57/48df57ba69bd5113162c7dde19f29e2e.jpg",
       likes: 329,
       views: 1876,
       date: "Apr 12, 2025"
@@ -39,7 +39,7 @@ export default function AdminProfile() {
     {
       id: 3,
       title: "Pallet Wood Coffee Table",
-      image: "/api/placeholder/400/250",
+      image: "https://i.pinimg.com/736x/0c/16/9f/0c169f78b731ed886779dcf075532044.jpg",
       likes: 563,
       views: 3245,
       date: "Mar 29, 2025"
@@ -59,65 +59,60 @@ export default function AdminProfile() {
     { id: 3, user: "DIY Community", text: "Your submission for the Spring DIY Contest has been received!", time: "2d ago", avatar: "/api/placeholder/40/40" }
   ];
     return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-gray-100">
       {/* Main Content */}
-      <main className="container mx-auto py-8 px-4">
-        {/* Profile Header */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          {/* Cover Photo */}
-          <div className="h-48 bg-gradient-to-r from-pink-300 to-pink-500 relative">
-            <button className="absolute bottom-4 right-4 bg-black bg-opacity-50 p-2 rounded-full">
-              <Camera size={20} className="text-white" />
-            </button>
-          </div>
-          
-          {/* Profile Info */}
-          <div className="flex flex-col md:flex-row p-6 relative">
-            {/* Avatar */}
-            <div className="md:absolute md:-top-16 flex flex-col items-center md:items-start">
-              <div className="relative">
-                <img 
-                  src={user.avatar} 
-                  alt="Profile" 
-                  className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover" 
-                />
-                <button className="absolute bottom-0 right-0 bg-pink-500 p-1 rounded-full">
-                  <Edit size={16} className="text-white" />
-                </button>
-              </div>
-            </div>
-            
-            {/* User Info */}
-            <div className="md:ml-32 flex-1 mt-6 md:mt-0">
-              <div className="flex flex-col md:flex-row md:justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold">{user.name}</h2>
-                  <p className="text-gray-600">{user.role}</p>
+      <main className="container mx-auto py-8 px-4 max-w-5xl">
+        {/* Profile Card */}
+        <div className="bg-white rounded-lg shadow-md mb-6">
+          {/* Profile Header */}
+          <div className="p-6">
+            <div className="flex items-start">
+              {/* Avatar */}
+              <div className="mr-6">
+                <div className="relative">
+                  <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-5xl text-gray-400">
+                      {user.name.charAt(0)}
+                    </span>
+                  </div>
+                  <button className="absolute bottom-0 right-0 bg-pink-500 p-2 rounded-full">
+                    <Edit size={16} className="text-white" />
+                  </button>
                 </div>
-                <button className="mt-4 md:mt-0 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
-                  Edit Profile
-                </button>
               </div>
               
-              <p className="mt-4 text-gray-700">{user.bio}</p>
-              
-              {/* Stats */}
-              <div className="mt-6 flex justify-between md:w-2/3">
-                <div className="text-center">
-                  <p className="font-bold text-xl">{user.stats.followers.toLocaleString()}</p>
-                  <p className="text-gray-600 text-sm">Followers</p>
+              {/* User Info */}
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold">{user.name}</h2>
+                    <p className="text-gray-600">{user.role}</p>
+                  </div>
+                  <button className="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
+                    Edit Profile
+                  </button>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-xl">{user.stats.following.toLocaleString()}</p>
-                  <p className="text-gray-600 text-sm">Following</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-xl">{user.stats.projects.toLocaleString()}</p>
-                  <p className="text-gray-600 text-sm">Projects</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-xl">{user.stats.likes.toLocaleString()}</p>
-                  <p className="text-gray-600 text-sm">Likes</p>
+                
+                <p className="mt-4 text-gray-700">{user.bio}</p>
+                
+                {/* Stats */}
+                <div className="mt-8 flex justify-between border-b border-gray-200 pb-6">
+                  <div>
+                    <p className="font-bold text-2xl">{user.stats.followers.toLocaleString()}</p>
+                    <p className="text-gray-600">Followers</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-2xl">{user.stats.following.toLocaleString()}</p>
+                    <p className="text-gray-600">Following</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-2xl">{user.stats.projects.toLocaleString()}</p>
+                    <p className="text-gray-600">Projects</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-2xl">{user.stats.likes.toLocaleString()}</p>
+                    <p className="text-gray-600">Likes</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -155,22 +150,22 @@ export default function AdminProfile() {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold">My Projects</h3>
-                <button className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
+                <button className="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
                   Add New Project
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {projects.map(project => (
-                  <div key={project.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="relative">
-                      <img src={project.image} alt={project.title} className="w-full h-48 object-cover" />
-                      <div className="absolute top-3 right-3 bg-black bg-opacity-50 text-white rounded-full p-1">
+                  <div key={project.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="relative w-full h-48 overflow-hidden">
+                      <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+                      <button className="absolute top-3 right-3 bg-black bg-opacity-50 text-white rounded-full p-2">
                         <Edit size={16} />
-                      </div>
+                      </button>
                     </div>
                     <div className="p-4">
-                      <h4 className="font-bold mb-2">{project.title}</h4>
+                      <h4 className="font-bold text-lg mb-3">{project.title}</h4>
                       <div className="flex justify-between text-sm text-gray-600">
                         <div className="flex items-center">
                           <Heart size={16} className="text-pink-500 mr-1" />
@@ -239,14 +234,6 @@ export default function AdminProfile() {
           )}
         </div>
       </main>
-      
-      {/* Footer */}
-      <footer className="bg-black text-white py-6 mt-12">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-pink-400 font-bold text-lg mb-2">DIY<span className="text-white">Haven</span></p>
-          <p className="text-gray-400">© 2025 DIYHaven. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }

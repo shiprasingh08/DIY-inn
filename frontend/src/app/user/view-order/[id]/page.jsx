@@ -80,7 +80,7 @@ export default function ViewOrder() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center">
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error</h2>
           <p className="text-gray-600">{error}</p>
@@ -97,7 +97,7 @@ export default function ViewOrder() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center">
         <div className="bg-white p-6 rounded-lg shadow-md text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Order Not Found</h2>
           <p className="text-gray-600">The order you're looking for doesn't exist.</p>

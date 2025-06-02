@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, ChevronDown, ChevronUp, Edit, Trash2, Eye, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/app/context/AuthContext';
 
 export default function UserOrderManagement() {
   const [sortField, setSortField] = useState('date');
@@ -10,6 +11,7 @@ export default function UserOrderManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   // Format date for display - handle various date formats and fallbacks
   const formatDate = (dateString) => {
@@ -22,11 +24,24 @@ export default function UserOrderManagement() {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [user.email]); // Refetch when user changes
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order/getall`);
+      if (!user.isLoggedIn || !user.email) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      // Use user email to fetch only their orders
+      const res = await fetch(`${apiUrl}/order/user/${encodeURIComponent(user.email)}`);
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+      
       const data = await res.json();
       setOrders(data);
       setLoading(false);
@@ -100,7 +115,7 @@ export default function UserOrderManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen w-full bg-gray-100">
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Page Header */}

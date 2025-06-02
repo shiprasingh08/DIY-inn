@@ -62,14 +62,7 @@ export default function DIYHomepage() {
     toast.success(isFavorite[projectId] ? 'Removed from favorites' : 'Added to favorites');
   };
 
-  useEffect(() => {
-    // Hide welcome message after 1 seconds
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 3000);
 
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     // Auto rotate hero images
@@ -162,16 +155,7 @@ export default function DIYHomepage() {
     <>
     < Navbar />
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Welcome Animation */}
-      {showWelcome && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="text-4xl text-white font-bold flex items-center animate-bounce">
-            Welcome to DIY World
-            <Heart className="text-pink-500 ml-2 animate-pulse" size={40} />
-          </div>
-        </div>
-      )}
-
+  
       {/* Hero Section with Image Slider */}
       <div className="bg-pink-100 p-12 text-center relative overflow-hidden">
         {/* Background Image Slider */}

@@ -10,7 +10,7 @@ export default function UserProfile() {
     name: "Nest&Needle",
     username: "@nestandneedle",
     bio: "DIY enthusiast passionate about upcycling and sustainable crafts.",
-    profileImage: "/public/images/nest&needle.jpg",
+    profileImage: "/nest&needle.jpg",
   };
   
   // Sample projects data with liked state
@@ -18,19 +18,19 @@ export default function UserProfile() {
     { 
       id: 1, 
       title: "Upcycled Pallet Coffee Table", 
-      image: "/api/placeholder/300/200",
+      image: "https://via.placeholder.com/300x200?text=Pallet+Coffee+Table",
       liked: false
     },
     { 
       id: 2, 
       title: "Macramé Plant Hangers", 
-      image: "/api/placeholder/300/200",
+      image: "https://via.placeholder.com/300x200?text=Macrame+Plant+Hangers",
       liked: false
     },
     { 
-      id: 3, 
+      id: 4, 
       title: "DIY Terrarium", 
-      image: "/api/placeholder/300/200",
+      image: "https://via.placeholder.com/300x200?text=DIY+Terrarium",
       liked: false 
     }
   ]);
@@ -68,16 +68,24 @@ export default function UserProfile() {
       <div className="w-full h-32 bg-pink-500"></div>
       
       {/* Profile Section */}
-      <div className="max-w-2xl mx-auto px-4 -mt-16">
+      <div className="w-full px-4 -mt-16">
         <div className="bg-white rounded-lg shadow-md p-6">
           {/* Profile Header */}
           <div className="flex flex-col items-center">
             {/* Profile Picture */}
-            <img 
-              src={userData.profileImage} 
-              alt="Profile" 
-              className="w-24 h-24 rounded-full border-4 border-white shadow-md"
-            />
+            <div className="w-24 h-24 rounded-full border-4 border-white shadow-md bg-gray-200 flex items-center justify-center">
+              {userData.profileImage ? (
+                <img 
+                  src={userData.profileImage} 
+                  alt="Profile" 
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-bold text-gray-500">
+                  {userData.name.charAt(0)}
+                </span>
+              )}
+            </div>
             
             {/* User Info */}
             <div className="mt-4 text-center">
@@ -124,10 +132,11 @@ export default function UserProfile() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {projects.map(project => (
                   <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src={project.image} alt={project.title} className="w-full h-40 object-cover" />                    <div className="p-3">
+                    <img src={project.image} alt={project.title} className="w-full h-40 object-cover" />
+                    <div className="p-3">
                       <h3 className="font-medium text-gray-900">{project.title}</h3>
                       <div className="flex justify-between items-center mt-2">
                         <button 
@@ -147,6 +156,16 @@ export default function UserProfile() {
                   </div>
                 ))}
               </div>
+              
+              {projects.length === 0 && (
+                <div className="text-center py-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">No Projects Yet</h2>
+                  <p className="text-gray-600 mb-4">Create your first DIY project to showcase your skills</p>
+                  <button className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-md">
+                    Create Project
+                  </button>
+                </div>
+              )}
             </div>
           )}
           
@@ -162,7 +181,8 @@ export default function UserProfile() {
           )}
         </div>
       </div>
-        {/* Footer Navigation */}
+      
+      {/* Footer Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 flex justify-around items-center">
         <button 
           className="text-gray-600 hover:text-pink-500"
