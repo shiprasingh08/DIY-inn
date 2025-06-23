@@ -11,4 +11,4 @@ const mySchema = new Schema({
     createdAt : { type : Date, default: Date.now }
 });
 
-module.exports = model('kit', mySchema); 
+module.exports = model('kit', mySchema);

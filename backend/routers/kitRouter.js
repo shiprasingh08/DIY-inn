@@ -41,16 +41,17 @@ router.get('/getbyid/:id', (req, res) => {
 
 
 
-router.get('/getall', (req, res) => {
-
-    Model.find()
-        .then((result) => {
-            res.status(200).json(result);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json(err);
-        });
-
+router.get('/getall', async (req, res) => {
+    try {
+        const result = await Model.find().lean();
+        if (!result) {
+            return res.status(404).json({ message: 'No kits found' });
+        }
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Error fetching kits:', err);
+        res.status(500).json({ message: 'Internal server error', error: err.message });
+    }
 });
 
 
