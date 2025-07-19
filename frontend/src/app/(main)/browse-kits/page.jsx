@@ -75,34 +75,31 @@ const BrowseKitsContent = () => {
     <>
       <Navbar />
 
-      {/* Hero Section with Gradient Background */}
-      <div className="relative min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-pink-300/20 to-purple-300/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-indigo-300/20 to-pink-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-purple-300/10 to-pink-300/10 rounded-full blur-2xl animate-pulse delay-500"></div>
-        </div>
+      {/* Hero Section with Solid Background */}
+      <div className="relative min-h-screen bg-white">
+        {/* Simple Pink Circle Decoration */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-pink-100 rounded-full blur-2xl opacity-60"></div>
+        <div className="absolute -bottom-20 -left-20 w-52 h-52 bg-black/10 rounded-full blur-2xl opacity-60"></div>
 
         <div className="relative z-10 px-4 py-8 sm:px-6 sm:py-12 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
           {/* Header Section */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 mb-4">
-              <Sparkles className="w-6 h-6 text-pink-500 animate-spin" />
+              <Sparkles className="w-6 h-6 text-pink-500" />
               <span className="text-sm font-medium text-pink-600 uppercase tracking-wider">Discover & Create</span>
-              <Sparkles className="w-6 h-6 text-pink-500 animate-spin" />
+              <Sparkles className="w-6 h-6 text-pink-500" />
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-black">
               Browse DIY Kits
             </h1>
-            <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto">
+            <p className="text-black text-lg md:text-xl max-w-2xl mx-auto">
               Transform your creativity into reality with our curated collection of premium DIY kits
             </p>
           </div>
 
           {/* Search and Filter Section */}
           <div className="max-w-4xl mx-auto mb-12">
-            <div className="backdrop-blur-md bg-white/80 rounded-2xl shadow-xl border border-white/50 p-6 md:p-8">
+            <div className="bg-white rounded-2xl shadow-xl border border-pink-200 p-6 md:p-8">
               <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 {/* Search Input */}
                 <div className="relative flex-1">
@@ -114,7 +111,7 @@ const BrowseKitsContent = () => {
                     placeholder="Search for amazing DIY projects..."
                     value={searchTerm}
                     onChange={handleSearch}
-                    className="pl-12 pr-4 py-4 w-full text-base rounded-xl border-0 bg-white shadow-lg focus:ring-4 focus:ring-pink-200 focus:outline-none transition-all duration-300 placeholder-gray-400"
+                    className="pl-12 pr-4 py-4 w-full text-base rounded-xl border border-pink-200 bg-white shadow focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all duration-300 placeholder-black/40 text-black"
                   />
                 </div>
 
@@ -126,7 +123,7 @@ const BrowseKitsContent = () => {
                   <select
                     value={selectedCategory}
                     onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="pl-12 pr-8 py-4 w-full text-base rounded-xl border-0 bg-white shadow-lg focus:ring-4 focus:ring-pink-200 focus:outline-none transition-all duration-300 appearance-none cursor-pointer"
+                    className="pl-12 pr-8 py-4 w-full text-base rounded-xl border border-pink-200 bg-white shadow focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all duration-300 appearance-none cursor-pointer text-black"
                   >
                     {categories.map((category) => (
                       <option key={category} value={category}>
@@ -171,9 +168,9 @@ const BrowseKitsContent = () => {
               {/* Results Counter */}
               {filteredProducts.length > 0 && (
                 <div className="text-center mb-8">
-                  <p className="text-gray-600">
+                  <p className="text-black">
                     Showing <span className="font-bold text-pink-600">{filteredProducts.length}</span> amazing kit{filteredProducts.length !== 1 ? 's' : ''}
-                    {selectedCategory !== 'All' && <span className="ml-1">in <span className="font-semibold text-purple-600">{selectedCategory}</span></span>}
+                    {selectedCategory !== 'All' && <span className="ml-1">in <span className="font-semibold text-black">{selectedCategory}</span></span>}
                   </p>
                 </div>
               )}
@@ -184,7 +181,7 @@ const BrowseKitsContent = () => {
                   {filteredProducts.map((product) => (
                     <div
                       key={product._id}
-                      className="group relative backdrop-blur-md bg-white/90 rounded-3xl shadow-lg hover:shadow-2xl border border-white/50 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:rotate-1"
+                      className="group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-pink-200 overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:rotate-1"
                     >
                       {/* Product Image Container */}
                       <div className="relative overflow-hidden rounded-t-3xl">
@@ -222,7 +219,7 @@ const BrowseKitsContent = () => {
                       <div className="p-6">
                         {/* Category Tag */}
                         <div className="inline-block mb-3">
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 border border-pink-200/50">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-pink-100 text-pink-700 border border-pink-200">
                             {product.category}
                           </span>
                         </div>
@@ -239,7 +236,7 @@ const BrowseKitsContent = () => {
 
                         {/* Price */}
                         <div className="mb-6">
-                          <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                          <span className="text-2xl font-bold text-pink-600">
                             ${parseFloat(product.price || 0).toFixed(2)}
                           </span>
                         </div>
@@ -248,7 +245,7 @@ const BrowseKitsContent = () => {
                         <div className="flex gap-2">
                           <Link
                             href={`/view-kits/${product._id}`}
-                            className="flex-1 group/btn flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                            className="flex-1 group/btn flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-pink-500 hover:bg-black text-white font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                           >
                             <Eye className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
                             <span className="text-sm">View</span>
@@ -257,7 +254,7 @@ const BrowseKitsContent = () => {
                           {isInCart(product) ? (
                             <button
                               onClick={() => removeItemFromCart(product)}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-black hover:bg-pink-600 text-white font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                               disabled={product.stock <= 0}
                             >
                               <ShoppingCart className="w-4 h-4" />
@@ -268,8 +265,8 @@ const BrowseKitsContent = () => {
                               onClick={() => addItemToCart(product)}
                               className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
                                 product.stock <= 0
-                                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                                  : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white'
+                                  ? 'bg-black/30 cursor-not-allowed text-white'
+                                  : 'bg-pink-500 hover:bg-black text-white'
                               }`}
                               disabled={product.stock <= 0}
                             >
@@ -286,11 +283,11 @@ const BrowseKitsContent = () => {
                 /* No Products Found */
                 <div className="text-center max-w-2xl mx-auto">
                   <div className="backdrop-blur-md bg-white/80 rounded-3xl shadow-xl border border-white/50 p-12">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-pink-100 flex items-center justify-center">
                       <Search className="w-10 h-10 text-pink-400" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">No DIY kits found</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className="text-2xl font-bold text-black mb-4">No DIY kits found</h3>
+                    <p className="text-black mb-6">
                       We couldn't find any kits matching your criteria. Try adjusting your search or explore different categories!
                     </p>
                     {searchTerm || selectedCategory !== 'All' ? (
@@ -299,7 +296,7 @@ const BrowseKitsContent = () => {
                           setSearchTerm('');
                           setSelectedCategory('All');
                         }}
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-pink-500 hover:bg-black text-white font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                       >
                         <Sparkles className="w-4 h-4" />
                         Clear all filters
@@ -319,13 +316,13 @@ const BrowseKitsContent = () => {
 const BrowseKits = () => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="relative mb-6">
             <div className="w-16 h-16 rounded-full border-4 border-pink-200 border-t-pink-500 animate-spin mx-auto"></div>
-            <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-b-purple-500 animate-spin animate-reverse"></div>
+            <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-b-black animate-spin animate-reverse"></div>
           </div>
-          <p className="text-gray-600 font-medium animate-pulse">Loading your creative journey...</p>
+          <p className="text-black font-medium animate-pulse">Loading your creative journey...</p>
         </div>
       </div>
     }>
