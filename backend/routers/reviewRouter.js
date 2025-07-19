@@ -44,9 +44,14 @@ router.post('/add', (req, res) => {
         })
         .catch((err) => {
             console.error('Error adding review:', err);
+            // Log the full error stack for debugging
+            if (err && err.stack) {
+                console.error('Full error stack:', err.stack);
+            }
             res.status(500).json({ 
                 message: 'Error adding review', 
-                error: err.message || 'Database error'
+                error: err.message || 'Database error',
+                stack: err.stack || null
             });
         });
 });
